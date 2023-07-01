@@ -59,6 +59,7 @@ function initialise_shuttle {
 						"preburn",5.1,
 						"roll",180,
 						"handover", LEXICON("time", srb_time + 5),
+						"maxThrottle",0,	
 						"stages",LIST(),
 						"SSME",0
 	).
@@ -68,6 +69,9 @@ function initialise_shuttle {
 	//add the ssme type to the vessel name 
 	
 	SET vehicle["name"] TO vehicle["name"] + " " + vehicle["SSME"]["type"].
+	
+	//limit upper throttle in nominal case
+	SET vehicle["maxThrottle"] TO vehicle["SSME"]["maxThrottle"].
 
 	
 	local veh_res IS res_dens_init(
@@ -247,10 +251,13 @@ function initialise_shuttle {
 
 	setup_engine_failure().
 	
+	//initialise first stage thrust at 100% rpl 
+	SET vehicle["stages"][1]["Throttle"] TO convert_ssme_throt_rpl(1).
+	
 	WHEN (SHIP:Q > 0.28) THEN {
 		IF NOT (abort_modes["triggered"]) {
 			addMessage("THROTTLING DOWN").
-			SET vehicle["stages"][1]["Throttle"] TO 0.75.
+			SET vehicle["stages"][1]["Throttle"] TO convert_ssme_throt_rpl(0.7).
 		}
 	}
 	
@@ -374,6 +381,11 @@ FUNCTION throttleControl {
 		SET throtval TO stg["throt_mult"]*SHIP:MASS*1000.
 		SET usc["lastthrot"] TO throtval.
 	}
+	
+	print "max " + vehicle["maxThrottle"] + " cur " + throtval + "   " at (5,52).
+	
+	set throtval to min(vehicle["maxThrottle"],throtval).
+	set stg["Throttle"] to throtval.
 
 	LOCAL minthrot IS 0.
 	IF stg:HASKEY("minThrottle") {
@@ -384,8 +396,13 @@ FUNCTION throttleControl {
 }
 
 
+//for terminal guidance, fix the throttle at minimum
+FUNCTION fix_minimum_throttle {
+	local stg IS get_stage().
 
+	set vehicle["maxThrottle"] to stg["minThrottle"].
 
+}
 
 
 
@@ -866,6 +883,11 @@ FUNCTION get_ext_tank_part {
 	RETURN SHIP:PARTSDUBBED("ShuttleExtTank")[0].
 }
 
+//return the ET propellant fraction left
+function get_et_prop_fraction {
+	return vehiclestate["m_burn_left"]/730874.
+}
+
 
 FUNCTION activate_fuel_cells {
 
@@ -972,8 +994,8 @@ FUNCTION parse_ssme {
 		"isp",0,
 		"thrust",0,
 		"flow",0,
-		"minThrottle",0
-	
+		"minThrottle",0,
+		"maxThrottle",0
 	).
 	
 	//count SSMEs, not necessary per se but a useful check to see if we're flying a DECQ shuttle
@@ -1015,7 +1037,8 @@ FUNCTION parse_ssme {
 	SET ssmelex["thrust"] TO ssmelex["thrust"]/ssme_count.
 	SET ssmelex["flow"] TO ssmelex["flow"]/ssme_count.
 
-	
+	//calculate max throttle given nominal power level of 104.5%
+	SET ssmelex["maxThrottle"] TO 1.045*get_rpl_thrust()/ssmelex["thrust"].
 	
 	RETURN ssmelex.
 	
@@ -1031,6 +1054,28 @@ FUNCTION build_ssme_lex {
 				"resources",LIST("LqdHydrogen","LqdOxygen")
 	).
 
+
+}
+
+//100 percent rated power level in kn in vacuum (1ssme)
+function get_rpl_thrust {
+	return 2090.
+}
+
+//given a throttle value as a percentage of rpl, converts it into absolute percentage
+FUNCTION convert_ssme_throt_rpl {
+	parameter rpl_throt.
+	
+	local stg IS get_stage().
+	local ssme_thr IS stg["engines"]["thrust"]/3000.
+	
+	//first work out the rpl level of the engines' max thrust 
+	
+	local max_rpl_thr is ssme_thr/get_rpl_thrust().
+	
+	//then do the proportion with 100% commanded throttle 
+	
+	return rpl_throt/max_rpl_thr.
 
 }
 
@@ -1064,4 +1109,15 @@ FUNCTION SSME_flameout {
 		}
 	}
 	RETURN FALSE.
+}
+
+//get the ssme instantaneous vacuum thrust as percentage
+function get_ssme_throttle {
+	
+	local stg IS get_stage().
+	local throtval is stg["Throttle"].
+	
+	local ssme_thr IS throtval* stg["engines"]["thrust"]/3000.
+	
+	return ssme_thr/get_rpl_thrust().
 }

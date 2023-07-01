@@ -26,22 +26,16 @@ make_ascent_traj1_disp(7654).
 
 local phase is 1.
 
-when (vel_ > 1215) then {
-	make_ascent_traj2_disp().
-	set phase to 2.
-}
-
 until false {
 
-	//if (ship:control:pilotyaw > 0) {
-	//	set sample_data_count to sample_data_count + 2.
-	//} else if (ship:control:pilotyaw < 0) {
-	//	set sample_data_count to max(0, sample_data_count - 2).
-	//}
+	if (ship:control:pilotyaw > 0) {
+		set sample_data_count to sample_data_count + 2.
+	} else if (ship:control:pilotyaw < 0) {
+		set sample_data_count to max(0, sample_data_count - 2).
+	}
 	
 	set twr to twr + 0.05*ship:control:pilotpitch.
 	
-	set vi to vi + 10*ship:control:pilotyaw.
 	
 	print "vi " + vi + " " at (0,2).
 	

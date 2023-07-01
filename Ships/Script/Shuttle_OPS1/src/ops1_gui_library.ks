@@ -11,7 +11,7 @@ FUNCTION make_main_ascent_gui {
 	//create the GUI.
 	GLOBAL main_ascent_gui is gui(main_ascent_gui_width,main_ascent_gui_height).
 	SET main_ascent_gui:X TO 200.
-	SET main_ascent_gui:Y TO 670.
+	SET main_ascent_gui:Y TO 600.
 	SET main_ascent_gui:STYLe:WIDTH TO main_ascent_gui_width.
 	SET main_ascent_gui:STYLe:HEIGHT TO main_ascent_gui_height.
 	SET main_ascent_gui:STYLE:ALIGN TO "center".
@@ -98,6 +98,11 @@ FUNCTION make_main_ascent_gui {
 	SET ascent_traj_disp_orbiter:IMAGE TO "Shuttle_OPS1/src/gui_images/traj_pos_bug.png".
 	SET ascent_traj_disp_orbiter:STYLe:WIDTH TO 12.
 	
+	local shut_bug_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(0),ascent_traj_disp_y_convert(0), 0), 5).
+	
+	SET ascent_traj_disp_orbiter:STYLE:margin:v to shut_bug_pos[1].
+	SET ascent_traj_disp_orbiter:STYLE:margin:h to shut_bug_pos[0].
+	
 	GLOBAL ascent_traj_disp_pred_box IS ascent_traj_disp_mainbox:ADDVLAYOUT().
 	SET ascent_traj_disp_pred_box:STYLE:ALIGN TO "Center".
 	SET ascent_traj_disp_pred_box:STYLe:WIDTH TO 1.
@@ -154,31 +159,9 @@ function make_ascent_traj1_disp {
 	set main_ascent_gui:skin:horizontalsliderthumb:WIDTH to 16.
 	set main_ascent_gui:skin:horizontalsliderthumb:margin:v to -12.
 	
-	GLOBAL cutv_sliderbox IS ascent_traj_disp_upperdatabox:ADDHLAYOUT().
-	SET cutv_sliderbox:STYLe:HEIGHT TO 40.
-	SET cutv_sliderbox:STYLe:width TO 400.
-	set cutv_sliderbox:style:margin:h to 80.
-	set cutv_sliderbox:style:margin:v to 10.
+	make_ascent_cutv_slider(ascent_traj_disp_upperdatabox, tgt_orb_vel).
 	
-	GLOBAL cutv_tgt_bug_box IS cutv_sliderbox:ADDVLAYOUT().
-	SET cutv_tgt_bug_box:STYLE:ALIGN TO "Center".
-	SET cutv_tgt_bug_box:STYLe:WIDTH TO 1.
-	SET cutv_tgt_bug_box:STYLe:HEIGHT TO 1.
-	
-	GLOBAL cutv_tgt_bug_ IS cutv_tgt_bug_box:ADDLABEL().
-	SET cutv_tgt_bug_:IMAGE TO "Shuttle_OPS1/src/gui_images/cutoff_vel_bug.png".
-	SET cutv_tgt_bug_:STYLe:WIDTH TO 25.
-	SET cutv_tgt_bug_:STYLe:HEIGHT TO 25.
-	
-	set cutv_tgt_bug_:style:margin:h to 4 + (tgt_orb_vel/1000 - 7)*320.
-	set cutv_tgt_bug_:style:margin:v to 5.
-	
-	
-	GLOBAL cutv_slider is cutv_sliderbox:addhslider(7,7,8).
-	SET cutv_slider:style:vstretch to false.
-	SET cutv_slider:style:hstretch to false.
-	SET cutv_slider:STYLE:WIDTH TO 335.
-	SET cutv_slider:STYLE:HEIGHT TO 20.
+	ascent_traj_disp_upperdatabox:HIDE().
 	
 	
 	GLOBAL ascent_traj_disp_leftdatabox IS ascent_traj_disp_overlaiddata:ADDVLAYOUT().
@@ -206,20 +189,7 @@ function make_ascent_traj1_disp {
 	set ascent_traj_disp_rightdatabox:style:margin:h to 300.
 	set ascent_traj_disp_rightdatabox:style:margin:v to 10.
 	
-	SET main_ascent_gui:skin:verticalslider:bg TO "Shuttle_OPS1/src/gui_images/g_slider_bg.png".
-	set main_ascent_gui:skin:verticalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/vslider_thumb.png".
-	set main_ascent_gui:skin:verticalsliderthumb:HEIGHT to 15.
-	set main_ascent_gui:skin:verticalsliderthumb:WIDTH to 11.
-	set main_ascent_gui:skin:verticalsliderthumb:margin:h to 18.
-	
-	GLOBAL g_sliderbox IS ascent_traj_disp_rightdatabox:ADDHLAYOUT().
-	SET g_sliderbox:STYLe:WIDTH TO 40.
-	GLOBAL g_slider is g_sliderbox:addvslider(1,3.4,0.6).
-	SET g_slider:STYLE:ALIGN TO "Center".
-	SET g_slider:style:vstretch to false.
-	SET g_slider:style:hstretch to false.
-	SET g_slider:STYLE:WIDTH TO 22.
-	SET g_slider:STYLE:HEIGHT TO 156.
+	make_g_slider(ascent_traj_disp_rightdatabox).
 	
 	GLOBAL ascent_traj_disp_rightdatabox2 IS ascent_traj_disp_rightdatabox:ADDVLAYOUT().
 	SET ascent_traj_disp_rightdatabox2:STYLE:ALIGN TO "left".
@@ -228,17 +198,69 @@ function make_ascent_traj1_disp {
 	set ascent_traj_disp_rightdatabox2:style:margin:h to 15.
 	set ascent_traj_disp_rightdatabox2:style:margin:v to 20.
 	
-	GLOBAL ascent_trajrightdata1 IS ascent_traj_disp_rightdatabox2:ADDLABEL("XLFAC xxxxxx").
+	GLOBAL ascent_trajrightdata1 IS ascent_traj_disp_rightdatabox2:ADDLABEL("PROP xxxxxx").
 	set ascent_trajrightdata1:style:margin:v to -4.
-	GLOBAL ascent_trajrightdata2 IS ascent_traj_disp_rightdatabox2:ADDLABEL("L/D   xxxxxx").
+	GLOBAL ascent_trajrightdata2 IS ascent_traj_disp_rightdatabox2:ADDLABEL("THR   xxxxxx").
 	set ascent_trajrightdata2:style:margin:v to -4.
-	GLOBAL ascent_trajrightdata3 IS ascent_traj_disp_rightdatabox2:ADDLABEL("DRAG  xxxxxx").
+	GLOBAL ascent_trajrightdata3 IS ascent_traj_disp_rightdatabox2:ADDLABEL("").
 	set ascent_trajrightdata3:style:margin:v to -4.
-	GLOBAL ascent_trajrightdata4 IS ascent_traj_disp_rightdatabox2:ADDLABEL("D REF xxxxxx").
+	GLOBAL ascent_trajrightdata4 IS ascent_traj_disp_rightdatabox2:ADDLABEL("TGO  xxxxxx").
 	set ascent_trajrightdata4:style:margin:v to -4.
-	GLOBAL ascent_trajrightdata5 IS ascent_traj_disp_rightdatabox2:ADDLABEL("PHASE xxxxxx").
+	GLOBAL ascent_trajrightdata5 IS ascent_traj_disp_rightdatabox2:ADDLABEL("VGO  xxxxxx").
 	set ascent_trajrightdata5:style:margin:v to -4.
 	
+	
+}
+
+function make_ascent_cutv_slider {
+	parameter container_box.
+	parameter cutv.
+	
+	GLOBAL cutv_sliderbox IS container_box:ADDHLAYOUT().
+	SET cutv_sliderbox:STYLe:HEIGHT TO 40.
+	SET cutv_sliderbox:STYLe:width TO 400.
+	set cutv_sliderbox:style:margin:h to 80.
+	set cutv_sliderbox:style:margin:v to 10.
+	
+	GLOBAL cutv_tgt_bug_box IS cutv_sliderbox:ADDVLAYOUT().
+	SET cutv_tgt_bug_box:STYLE:ALIGN TO "Center".
+	SET cutv_tgt_bug_box:STYLe:WIDTH TO 1.
+	SET cutv_tgt_bug_box:STYLe:HEIGHT TO 1.
+	
+	GLOBAL cutv_tgt_bug_ IS cutv_tgt_bug_box:ADDLABEL().
+	SET cutv_tgt_bug_:IMAGE TO "Shuttle_OPS1/src/gui_images/cutoff_vel_bug.png".
+	SET cutv_tgt_bug_:STYLe:WIDTH TO 25.
+	SET cutv_tgt_bug_:STYLe:HEIGHT TO 25.
+	
+	set cutv_tgt_bug_:style:margin:h to 4 + (cutv/1000 - 7)*320.
+	set cutv_tgt_bug_:style:margin:v to 5.
+	
+	
+	GLOBAL cutv_slider is cutv_sliderbox:addhslider(7,7,8).
+	SET cutv_slider:style:vstretch to false.
+	SET cutv_slider:style:hstretch to false.
+	SET cutv_slider:STYLE:WIDTH TO 335.
+	SET cutv_slider:STYLE:HEIGHT TO 20.
+
+}
+
+function make_g_slider {
+	parameter container_box.
+	
+	SET main_ascent_gui:skin:verticalslider:bg TO "Shuttle_OPS1/src/gui_images/g_slider_bg.png".
+	set main_ascent_gui:skin:verticalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/vslider_thumb.png".
+	set main_ascent_gui:skin:verticalsliderthumb:HEIGHT to 15.
+	set main_ascent_gui:skin:verticalsliderthumb:WIDTH to 11.
+	set main_ascent_gui:skin:verticalsliderthumb:margin:h to 18.
+	
+	GLOBAL g_sliderbox IS container_box:ADDHLAYOUT().
+	SET g_sliderbox:STYLe:WIDTH TO 40.
+	GLOBAL g_slider is g_sliderbox:addvslider(1,3.4,0.6).
+	SET g_slider:STYLE:ALIGN TO "Center".
+	SET g_slider:style:vstretch to false.
+	SET g_slider:style:hstretch to false.
+	SET g_slider:STYLE:WIDTH TO 22.
+	SET g_slider:STYLE:HEIGHT TO 156.
 	
 }
 
@@ -251,18 +273,73 @@ function make_ascent_traj2_disp {
 	
 	set ascent_traj_disp_mainbox:style:BG to "Shuttle_OPS1/src/gui_images/ascent_traj2_bg.png".
 	
+	ascent_traj_disp_upperdatabox:SHOW().
+	
 	//ADD stuff to ascent_traj_disp_overlaiddata
 
 }
 
+//
+function make_rtls_traj2_disp {
+	clear_ascent_traj_data().
+	
+	local text_ht is ascent_traj_disp_titlebox:style:height*0.75.
+	set ascent_traj_disp_title:text to "<b><size=" + text_ht + "> RTLS  TRAJ 2</size></b>".
+	
+	set ascent_traj_disp_mainbox:style:BG to "Shuttle_OPS1/src/gui_images/ascent_traj2_bg.png".
+	
+}
+
+
+
 function update_ascent_traj_disp {
 	parameter gui_data.
+	
+	if (ascent_traj_disp_counter = 1 AND gui_data["ops_mode"]=2 AND gui_data["ve"] >= 1200) {
+		make_ascent_traj2_disp().
+	}
+	
+	set ascent_trajleftdata1:text to "Ḣ   " + round(gui_data["hdot"], 0). 
+	
+	local rolstr is "R   ".
+	if (gui_data["roll"] >=0) {
+		set rolstr to rolstr + "R".
+	} else {
+		set rolstr to rolstr + "L".
+	}
+	set rolstr to rolstr + round(control["roll_angle"] - abs(gui_data["roll"]),0).
+	set ascent_trajleftdata3:text to rolstr. 
+	
+	local pchstr is "P   ".
+	if (gui_data["pitch"] >=0) {
+		set pchstr to pchstr + "U".
+	} else {
+		set pchstr to pchstr + "D".
+	}
+	set pchstr to pchstr + round(abs(gui_data["pitch"]),0).
+	set ascent_trajleftdata4:text to pchstr. 
+	
+	local yawstr is "Y   ".
+	if (gui_data["yaw"] >=0) {
+		set yawstr to yawstr + "R".
+	} else {
+		set yawstr to yawstr + "L".
+	}
+	set yawstr to yawstr + round(abs(gui_data["yaw"]),0).
+	set ascent_trajleftdata5:text to yawstr. 
+	
+	
+	set ascent_trajrightdata1:text to "PROP " + round(gui_data["et_prop"],0). 
+	set ascent_trajrightdata2:text to "THR  " + round(gui_data["ssme_thr"], 0). 
+
+	set ascent_trajrightdata4:text to "TGO " + sectotime_simple(gui_data["tgo"]). 
+	set ascent_trajrightdata5:text to "VGO  " + round(gui_data["vgo"], 0). 
+	
 	
 	SET g_slider:VALUE TO CLAMP(gui_data["twr"],g_slider:MIN,g_slider:MAX).
 	SET cutv_slider:VALUE TO CLAMP(gui_data["vi"]/1000,cutv_slider:MIN,cutv_slider:MAX).
 	
 	local shut_bug_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["ve"]),ascent_traj_disp_y_convert(gui_data["alt"]), 0), 5).
-	//local shut_bug_pos is set_ascent_traj_disp_pos(v(gui_data["ve"], gui_data["alt"], 0)).
 	
 	SET ascent_traj_disp_orbiter:STYLE:margin:v to shut_bug_pos[1].
 	SET ascent_traj_disp_orbiter:STYLE:margin:h to shut_bug_pos[0].
@@ -272,7 +349,6 @@ function update_ascent_traj_disp {
 	//SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_pred_pos[0].
 
 }
-
 
 //rescale redo
 function set_ascent_traj_disp_pos {
@@ -284,17 +360,17 @@ function set_ascent_traj_disp_pos {
 	local bounds_x is list(10, ascent_traj_disp_mainbox:STYLe:WIDTH - 32).
 	local bounds_y is list(ascent_traj_disp_mainbox:STYLe:HEIGHT - 29, 0).
 	
-	print "calc_x: " + bug_pos:X + " calc_y: " +  + bug_pos:Y  + "  " at (0, 4).
+	//print "calc_x: " + bug_pos:X + " calc_y: " +  + bug_pos:Y  + "  " at (0, 4).
 	
 	local pos_x is 1.04693*bug_pos:X  - 8.133 + bias.
 	local pos_y is 395.55 - 1.1685*bug_pos:Y + bias.
 	
-	print "disp_x: " + pos_x + " disp_y: " + pos_y + "  " at (0, 5).
+	//print "disp_x: " + pos_x + " disp_y: " + pos_y + "  " at (0, 5).
 	
 	set pos_x to clamp(pos_x, bounds_x[0], bounds_x[1] ).
 	set pos_y to clamp(pos_y, bounds_y[0], bounds_y[1]).
 	
-	print "disp_x: " + pos_x + " disp_y: " + pos_y + "  " at (0, 6).
+	//print "disp_x: " + pos_x + " disp_y: " + pos_y + "  " at (0, 6).
 	
 	return list(pos_x,pos_y).
 }

@@ -43,6 +43,7 @@ FUNCTION monitor_abort {
 		SET abort_modes["t_abort_true"] TO current_t.
 		SET abort_modes["t_abort"] TO MAX( current_t + 1, vehicle["handover"]["time"] + 5 ).
 		SET abort_modes["abort_v"] TO SHIP:VELOCITY:ORBIT:MAG.
+		SET vehicle["maxThrottle"] TO 1.
 		SET vehicle["stages"][vehiclestate["cur_stg"]]["Throttle"] TO 1.
 	}
 

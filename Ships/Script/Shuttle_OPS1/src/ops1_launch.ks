@@ -1,3 +1,5 @@
+GLOBAL quit_program IS FALSE.
+
 function launch{
 	CLEARSCREEN.
 	SET TERMINAL:WIDTH TO 65.
@@ -19,6 +21,7 @@ function launch{
 	RUNPATH("0:/Shuttle_OPS1/src/ops1_targeting_library").
 	RUNPATH("0:/Shuttle_OPS1/src/ops1_upfg_library").
 	RUNPATH("0:/Shuttle_OPS1/src/ops1_abort_library").
+	RUNPATH("0:/Shuttle_OPS1/src/ops1_gui_library.ks").
 	
 	PRINT " PROGRAM LIBRARIES LOADED" AT (0,1).
 	
@@ -30,6 +33,16 @@ function launch{
 	//need to have initalised the vehicle first for the vessel name
 	prepare_telemetry().
 	
+	make_main_ascent_gui().
+	make_ascent_traj1_disp(target_orbit["velocity"]).
+	
+	GLOBAL dataviz_executor IS loop_executor_factory(
+												0.3,
+												{
+													dataViz().
+												}
+	).
+	
 	countdown().
 	open_loop_ascent().
 	closed_loop_ascent().
@@ -38,11 +51,15 @@ function launch{
 
 
 
+
 declare function countdown{
 
 
 	LOCK THROTTLE to throttleControl().
 	SAS OFF.
+	
+	//this sets the pilot throttle command to some value so that it's not zero if the program is aborted
+	SET SHIP:CONTROL:PILOTMAINTHROTTLE TO vehicle["stages"][vehiclestate["cur_stg"]]["Throttle"].
 	
 	//prepare launch triggers 
 	add_action_event(1, activate_fuel_cells@ ).
@@ -82,9 +99,9 @@ declare function open_loop_ascent{
 	drawUI().
 	addMessage("LIFT-OFF!").
 	
-	//this sets the pilot throttle command to some value so that it's not zero if the program is aborted
-	SET SHIP:CONTROL:PILOTMAINTHROTTLE TO vehicle["stages"][vehiclestate["cur_stg"]]["Throttle"].
-	
+	//reset throttle to maximum
+	SET vehicle["stages"][1]["Throttle"] TO  vehicle["maxThrottle"].
+
 	
 	getState().
 
@@ -125,9 +142,6 @@ declare function open_loop_ascent{
 		IF steer_flag {
 			set control["steerdir"] TO aimAndRoll(aimVec, control["refvec"], control["roll_angle"]).
 		}
-		
-		dataViz().
-		WAIT 0.
 	}
 	
 }
@@ -135,9 +149,6 @@ declare function open_loop_ascent{
 
 declare function closed_loop_ascent{
 	
-	
-	SET vehiclestate["ops_mode"] TO 2.
-	drawUI().
 	getState().
 	
 	SET STEERINGMANAGER:ROLLCONTROLANGLERANGE TO 180.
@@ -150,14 +161,15 @@ declare function closed_loop_ascent{
 	SET control["refvec"] TO -SHIP:ORBIT:BODY:POSITION:NORMALIZED.
 	
 	LOCAL x IS setupUPFG(target_orbit).
-	GLOBAL upfgInternal IS x[0].
-	GLOBAL usc IS x[1].
+	SET upfgInternal TO x[0].
+	SET usc TO x[1].
 	SET usc["lastvec"] TO vecYZ(thrust_vec()).
 	SET usc["lastthrot"] TO vehicle["stages"][vehiclestate["cur_stg"]]["Throttle"].
 	
-	addMessage("RUNNING UPFG ALGORITHM").
+	SET vehiclestate["ops_mode"] TO 2.
+	drawUI().
 	
-	dataViz().
+	addMessage("RUNNING UPFG ALGORITHM").
 
 	UNTIL FALSE{
 		IF usc["itercount"]=0 { //detects first pass or convergence lost
@@ -214,8 +226,6 @@ declare function closed_loop_ascent{
 		IF vehicle["stages"][vehiclestate["cur_stg"]]["mode"] <> 2 {
 			SET vehicle["stages"][vehiclestate["cur_stg"]]["Throttle"] TO usc["lastthrot"].		
 		}
-		dataViz().
-		WAIT 0.
 	}
 	
 	SET vehiclestate["ops_mode"] TO 3.
@@ -223,7 +233,7 @@ declare function closed_loop_ascent{
 	SET usc["terminal"] TO TRUE.
 	
 	//min throttle for any case
-	LOCK THROTTLE TO throtteValueConverter(0.67).
+	fix_minimum_throttle(). 
 	
 	//put RTLS terminal logic in its own block
 	IF (DEFINED RTLSAbort) {
@@ -259,9 +269,6 @@ declare function closed_loop_ascent{
 				BREAK.
 			}
 			
-			
-			dataViz().
-			WAIT 0.
 		}
 	} ELSE {
 		
@@ -277,8 +284,6 @@ declare function closed_loop_ascent{
 				FOR E IN Eng {IF e:ISTYPE("engine") {E:SHUTDOWN.}}
 				BREAK.
 			}
-			dataViz().
-			WAIT 0.
 		}
 	
 	}
@@ -314,9 +319,7 @@ declare function closed_loop_ascent{
 		IF (vehiclestate["ops_mode"] = 4) {
 			BREAK.
 		}
-	
-		dataViz().
-		WAIT 0.
+		WAIT 0.1.
 	}
 	
 	//to disable RCS separation maneouvre
@@ -340,13 +343,14 @@ declare function closed_loop_ascent{
 	SET vehiclestate["staging_in_progress"] TO TRUE.	//so that vehicle perf calculations are skipped in getState
 	
 	drawUI().
-	UNTIL AG9 {
+	UNTIL (AG9 or quit_program). {
 		getState().
-		dataViz().
-		WAIT 0.
+		WAIT 0.2.
 	}
 		
 }
 
 
 launch().
+
+close_all_GUIs().

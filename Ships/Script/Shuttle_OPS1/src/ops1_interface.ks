@@ -227,7 +227,7 @@ FUNCTION drawUI {
 //				requires flight sequence given by P_seq defined as GLOBAL and of type LIST
 //				capable of displaying custom messages, set up by addMessage as a GLOBAL STRING with a FLOAT time to live
 FUNCTION dataViz {
-
+	if (vehiclestate["ops_mode"] =0) {return.}
 	
 	//PRINTING VARIABLES IN THE CORRECT PLACE
 	//MET
@@ -347,14 +347,48 @@ FUNCTION dataViz {
 			//	PRINTPLACE(ROUND(upfgInternal["dmbo"]/1000,1) + " t",12,50,vehloc+5).
 			//}
 		}
-
 	}
-
 	
 	//messages
 	message_Viz().
 	
 	log_telemetry().
+	
+	//do the rtls gui update 
+	IF (DEFINED RTLSAbort) {
+	
+	} else {
+		local tgo is 0.
+		local vgo is 0.
+		
+		if (vehiclestate["ops_mode"] > 1) {
+			set tgo to upfgInternal["Tgo"].
+			set vgo to upfgInternal["vgo"]:MAG.
+		}
+
+		//for traj prediction
+		local thrustvec is get_current_thrust_isp()[0].
+		
+		LOCAL gui_data IS lexicon(
+					"ops_mode", vehiclestate["ops_mode"],
+					"hdot", SHIP:VERTICALSPEED,
+					"roll", get_roll_lvlh(),
+					"pitch", get_pitch_prograde(),
+					"yaw", get_yaw_prograde(),
+					"vi", SHIP:VELOCITY:ORBIT:MAG,
+					"ve", SHIP:VELOCITY:SURFACE:MAG,
+					"alt", SHIP:ALTITUDE/1000,
+					"twr", get_TWR(),
+					"ssme_thr", 100*get_ssme_throttle(),
+					"et_prop", 100*get_et_prop_fraction(),
+					"tgo", tgo,
+					"vgo", vgo,
+					"thrustvec", thrustvec
+		).
+					
+		update_ascent_traj_disp(gui_data).
+	
+	} 
 	
 
 }

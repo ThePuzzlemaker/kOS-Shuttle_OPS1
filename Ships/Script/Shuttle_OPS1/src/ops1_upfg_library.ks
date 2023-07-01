@@ -10,6 +10,36 @@ GLOBAL upfgFinalizationTime IS 5.		//	When time-to-go gets below that, keep atti
 GLOBAL upfgConvergenceTgo IS 1.	//	Maximum difference between consecutive UPFG T-go predictions that allow accepting the solution.
 GLOBAL upfgConvergenceVec IS 15.	//	Maximum angle between guidance vectors calculated by UPFG between stages that allow accepting the solution.
 	
+
+GLOBAL upfgInternal IS LEXICON(
+		"cser", 0,
+		"rbias", V(0, 0, 0),
+		"rd", V(0, 0, 0),
+		"rgrav", V(0, 0, 0),
+		"vgrav", V(0, 0, 0),
+		"time", 0,
+		"tgo", 0,
+		"v", V(0, 0, 0),
+		"vgo", V(0, 0, 0),
+		"lambda", V(1,0,0),
+		"lambdadot", V(0,0,0),
+		"t_lambda",0,
+		"steering",V(1,0,0),
+		"throtset",0,
+		"flyback_flag",FALSE,
+		"mbod",0,
+		"dmbo",0,
+		"Tc",0
+	).
+GLOBAL usc IS LEXICON(
+		"iter",-2,
+		"conv",-2,
+		"itercount",0,
+		"lastvec",V(1,0,0),
+		"lastiter",0,
+		"lastthrot",0,
+		"terminal",FALSE
+	).
 	
 
 									//	UPFG HANDLING FUNCTIONS
