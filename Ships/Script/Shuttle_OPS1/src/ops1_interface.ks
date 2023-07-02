@@ -357,13 +357,20 @@ FUNCTION dataViz {
 	local roll_prog is get_roll_prograde().
 	local pitch_prog is get_pitch_prograde().
 	
-	local thrustvec is get_current_thrust_isp()[0]/1000.
+	
+	local thrvec is vehiclestate["thr_vec"]/1000.
 	
 	//predict 30 seconds into the future, 2 steps
 	//keep roll and pitch fixed 
 	LOCAL pred_simstate IS current_simstate().
+	LOCAL sim_dt IS 15.
+	
+	IF (vehiclestate["ops_mode"] =1) {
+		SET sim_dt TO 7.5.
+	}
+	
 	FROM {local k is 1.} UNTIL k > 2 STEP {set k to k + 1.} DO { 
-		SET pred_simstate TO rk3(15,pred_simstate,LIST(pitch_prog,roll_prog), thrustvec).
+		SET pred_simstate TO rk3(sim_dt,pred_simstate,LIST(pitch_prog,roll_prog), thrvec).
 	}	
 	SET pred_simstate["altitude"] TO bodyalt(pred_simstate["position"]).
 	SET pred_simstate["surfvel"] TO surfacevel(pred_simstate["velocity"],pred_simstate["position"]).
@@ -412,7 +419,7 @@ FUNCTION dataViz {
 					"et_prop", 100*get_et_prop_fraction(),
 					"tgo", tgo,
 					"vgo", vgo,
-					"thrustvec", thrustvec
+					"converged", (usc["conv"]=1)
 		).
 					
 		update_ascent_traj_disp(gui_data).
