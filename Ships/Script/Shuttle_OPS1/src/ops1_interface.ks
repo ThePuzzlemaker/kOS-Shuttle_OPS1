@@ -354,8 +354,32 @@ FUNCTION dataViz {
 	
 	log_telemetry().
 	
+	local roll_prog is get_roll_prograde().
+	local pitch_prog is get_pitch_prograde().
+	
+	local thrustvec is get_current_thrust_isp()[0]/1000.
+	
+	//predict 30 seconds into the future, 2 steps
+	//keep roll and pitch fixed 
+	LOCAL pred_simstate IS current_simstate().
+	FROM {local k is 1.} UNTIL k > 2 STEP {set k to k + 1.} DO { 
+		SET pred_simstate TO rk3(15,pred_simstate,LIST(pitch_prog,roll_prog), thrustvec).
+	}	
+	SET pred_simstate["altitude"] TO bodyalt(pred_simstate["position"]).
+	SET pred_simstate["surfvel"] TO surfacevel(pred_simstate["velocity"],pred_simstate["position"]).
+	SET pred_simstate["latlong"] TO shift_pos(pred_simstate["position"],pred_simstate["simtime"]).
+
+	LOCAL pred_ve IS pred_simstate["surfvel"]:MAG.
+	LOCAL pred_alt IS pred_simstate["altitude"]/1000.
+	
+	
 	//do the rtls gui update 
 	IF (DEFINED RTLSAbort) {
+	
+		LOCAL pred_v_dwnrg IS current_horiz_dwnrg_speed(pred_simstate["latlong"], pred_simstate["surfvel"]).
+		
+		//v_dwnrng", current_horiz_dwnrg_speed(SHIP:GEOPOSITION, SHIP:VELOCITY:SURFACE),
+		//"pred_v_dwnrg", pred_v_dwnrg,
 	
 	} else {
 		local tgo is 0.
@@ -367,17 +391,22 @@ FUNCTION dataViz {
 		}
 
 		//for traj prediction
-		local thrustvec is get_current_thrust_isp()[0].
+		
+		print "alt " + SHIP:ALTITUDE/1000 + "  " + pred_alt + "  " at (5,53).
+		print "ve " + SHIP:VELOCITY:SURFACE:MAG + "  " + pred_ve + "  " at (5,54).
+		
 		
 		LOCAL gui_data IS lexicon(
 					"ops_mode", vehiclestate["ops_mode"],
 					"hdot", SHIP:VERTICALSPEED,
 					"roll", get_roll_lvlh(),
-					"pitch", get_pitch_prograde(),
+					"pitch", pitch_prog,
 					"yaw", get_yaw_prograde(),
 					"vi", SHIP:VELOCITY:ORBIT:MAG,
 					"ve", SHIP:VELOCITY:SURFACE:MAG,
 					"alt", SHIP:ALTITUDE/1000,
+					"pred_ve", pred_ve,
+					"pred_alt", pred_alt,
 					"twr", get_TWR(),
 					"ssme_thr", 100*get_ssme_throttle(),
 					"et_prop", 100*get_et_prop_fraction(),

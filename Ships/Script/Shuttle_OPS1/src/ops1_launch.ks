@@ -14,6 +14,7 @@ function launch{
 	RUNPATH("0:/Libraries/maths_library").	
 	RUNPATH("0:/Libraries/navigation_library").	
 	RUNPATH("0:/Libraries/vehicle_library").	
+	RUNPATH("0:/Libraries/aerosim_library").	
 	
 	
 	RUNPATH("0:/Shuttle_OPS1/src/ops1_interface").

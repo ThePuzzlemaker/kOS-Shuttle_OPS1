@@ -112,6 +112,9 @@ FUNCTION make_main_ascent_gui {
 	SET ascent_traj_disp_pred_bug_:IMAGE TO "Shuttle_OPS1/src/gui_images/traj_pred_bug.png".
 	SET ascent_traj_disp_pred_bug_:STYLe:WIDTH TO 10.
 	
+	SET ascent_traj_disp_pred_bug_:STYLE:margin:v to shut_bug_pos[1] - 3.
+	SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_bug_pos[0].
+	
 	main_ascent_gui:SHOW().
 	
 }
@@ -295,7 +298,7 @@ function make_rtls_traj2_disp {
 function update_ascent_traj_disp {
 	parameter gui_data.
 	
-	if (ascent_traj_disp_counter = 1 AND gui_data["ops_mode"]=2 AND gui_data["ve"] >= 1200) {
+	if (ascent_traj_disp_counter = 1 AND gui_data["ve"] >= 1200) {
 		make_ascent_traj2_disp().
 	}
 	
@@ -344,9 +347,9 @@ function update_ascent_traj_disp {
 	SET ascent_traj_disp_orbiter:STYLE:margin:v to shut_bug_pos[1].
 	SET ascent_traj_disp_orbiter:STYLE:margin:h to shut_bug_pos[0].
 	
-	//local shut_pred_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["range_pred"]),ascent_traj_disp_y_convert(gui_data["vi_pred"]), 0), 7).
-	//SET ascent_traj_disp_pred_bug_:STYLE:margin:v to shut_pred_pos[1].
-	//SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_pred_pos[0].
+	local shut_pred_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["pred_ve"]),ascent_traj_disp_y_convert(gui_data["pred_alt"]), 0), 5).
+	SET ascent_traj_disp_pred_bug_:STYLE:margin:v to shut_pred_pos[1] - 3.
+	SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_pred_pos[0].
 
 }
 
