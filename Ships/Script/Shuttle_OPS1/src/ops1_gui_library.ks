@@ -1,6 +1,10 @@
 GLOBAL guitextgreen IS RGB(20/255,255/255,21/255).
 global trajbgblack IS RGB(5/255,8/255,8/255).
 
+GLOBAL guitextgreenhex IS "14ff15".
+GLOBAL guitextredhex IS "ff1514".
+GLOBAL guitextyellowhex IS "fff600".
+
 GLOBAL main_ascent_gui_width IS 550.
 GLOBAL main_ascent_gui_height IS 510.
 
@@ -335,8 +339,13 @@ function update_ascent_traj_disp {
 	set ascent_trajrightdata1:text to "PROP " + round(gui_data["et_prop"],0). 
 	set ascent_trajrightdata2:text to "THR  " + round(gui_data["ssme_thr"], 0). 
 
-	set ascent_trajrightdata4:text to "TGO " + sectotime_simple(gui_data["tgo"]). 
-	set ascent_trajrightdata5:text to "VGO  " + round(gui_data["vgo"], 0). 
+	local upfg_text_color is guitextgreenhex.
+	if (gui_data["converged"]) {
+		set upfg_text_color to guitextyellowhex.
+	}
+
+	set ascent_trajrightdata4:text to "<color=#" + upfg_text_color + ">TGO " + sectotime_simple(gui_data["tgo"]) + "</color>". 
+	set ascent_trajrightdata5:text to "<color=#" + upfg_text_color + ">VGO  " + round(gui_data["vgo"], 0) + "</color>". 
 	
 	
 	SET g_slider:VALUE TO CLAMP(gui_data["twr"],g_slider:MIN,g_slider:MAX).
