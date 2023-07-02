@@ -193,7 +193,7 @@ function make_ascent_traj1_disp {
 	SET ascent_traj_disp_rightdatabox:STYLE:ALIGN TO "left".
 	SET ascent_traj_disp_rightdatabox:STYLE:WIDTH TO 125.
     SET ascent_traj_disp_rightdatabox:STYLE:HEIGHT TO 115.
-	set ascent_traj_disp_rightdatabox:style:margin:h to 300.
+	set ascent_traj_disp_rightdatabox:style:margin:h to 320.
 	set ascent_traj_disp_rightdatabox:style:margin:v to 10.
 	
 	make_g_slider(ascent_traj_disp_rightdatabox).
@@ -254,11 +254,11 @@ function make_ascent_cutv_slider {
 function make_g_slider {
 	parameter container_box.
 	
-	SET main_ascent_gui:skin:verticalslider:bg TO "Shuttle_OPS1/src/gui_images/g_slider_bg.png".
+	SET main_ascent_gui:skin:verticalslider:bg TO "Shuttle_OPS1/src/gui_images/g_slider_bg2.png".
 	set main_ascent_gui:skin:verticalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/vslider_thumb.png".
 	set main_ascent_gui:skin:verticalsliderthumb:HEIGHT to 15.
 	set main_ascent_gui:skin:verticalsliderthumb:WIDTH to 11.
-	set main_ascent_gui:skin:verticalsliderthumb:margin:h to 18.
+	set main_ascent_gui:skin:verticalsliderthumb:margin:h to 22.
 	
 	GLOBAL g_sliderbox IS container_box:ADDHLAYOUT().
 	SET g_sliderbox:STYLe:WIDTH TO 40.
@@ -266,8 +266,8 @@ function make_g_slider {
 	SET g_slider:STYLE:ALIGN TO "Center".
 	SET g_slider:style:vstretch to false.
 	SET g_slider:style:hstretch to false.
-	SET g_slider:STYLE:WIDTH TO 22.
-	SET g_slider:STYLE:HEIGHT TO 156.
+	SET g_slider:STYLE:WIDTH TO 27.
+	SET g_slider:STYLE:HEIGHT TO 130.
 	
 }
 
