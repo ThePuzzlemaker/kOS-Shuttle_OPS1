@@ -340,7 +340,7 @@ function update_ascent_traj_disp {
 	set ascent_trajrightdata2:text to "THR  " + round(gui_data["ssme_thr"], 0). 
 
 	local upfg_text_color is guitextgreenhex.
-	if (gui_data["converged"]) {
+	if (NOT gui_data["converged"]) {
 		set upfg_text_color to guitextyellowhex.
 	}
 
