@@ -125,7 +125,7 @@ function initialise_shuttle {
 		),
 		"ign_t", 0,
 		"Tstage",srb_time,
-		"Throttle",1,
+		"Throttle",vehicle["maxThrottle"],
 		"minThrottle",vehicle["SSME"]["minThrottle"],	//needed for the max q throttle down
 		"engines",	engines_lex,
 		"ext_tank",et_part,
@@ -149,7 +149,7 @@ function initialise_shuttle {
 		"glim", 3,
 		"ign_t", 0,
 		"Tstage",0,
-		"Throttle",1,
+		"Throttle",vehicle["maxThrottle"],
 		"minThrottle",vehicle["SSME"]["minThrottle"],
 		"engines",	engines_lex,
 		"ext_tank",et_part,
@@ -185,7 +185,7 @@ function initialise_shuttle {
 		"glim",new_stg_2["glim"],
 		"ign_t", 0,
 		"Tstage",0,
-		"Throttle",1,
+		"Throttle",vehicle["maxThrottle"],
 		"minThrottle",vehicle["SSME"]["minThrottle"],
 		"throt_mult",0,
 		"engines",	engines_lex,
@@ -556,7 +556,7 @@ FUNCTION glim_t_m {
 	PARAMETER stg.
 	local out is LIST(0,0).
 	
-	local mbreak is stg["engines"]["thrust"]/(stg["glim"]*g0).
+	local mbreak is stg["engines"]["thrust"] * stg["Throttle"]/(stg["glim"]*g0).
 	IF mbreak > stg["m_final"]  {
 		SET out[1] TO mbreak.
 		SET out[0] TO (stg["m_initial"] - mbreak)/(stg["engines"]["flow"] * stg["Throttle"]).
