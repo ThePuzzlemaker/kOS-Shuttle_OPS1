@@ -6,7 +6,7 @@ GLOBAL guitextredhex IS "ff1514".
 GLOBAL guitextyellowhex IS "fff600".
 
 GLOBAL main_ascent_gui_width IS 550.
-GLOBAL main_ascent_gui_height IS 510.
+GLOBAL main_ascent_gui_height IS 525.
 
 
 FUNCTION make_main_ascent_gui {
@@ -15,7 +15,7 @@ FUNCTION make_main_ascent_gui {
 	//create the GUI.
 	GLOBAL main_ascent_gui is gui(main_ascent_gui_width,main_ascent_gui_height).
 	SET main_ascent_gui:X TO 200.
-	SET main_ascent_gui:Y TO 600.
+	SET main_ascent_gui:Y TO 540.
 	SET main_ascent_gui:STYLe:WIDTH TO main_ascent_gui_width.
 	SET main_ascent_gui:STYLe:HEIGHT TO main_ascent_gui_height.
 	SET main_ascent_gui:STYLE:ALIGN TO "center".
@@ -71,7 +71,7 @@ FUNCTION make_main_ascent_gui {
 	GLOBAL ascent_traj_disp_counter IS 1.				   			   
 	
 	GLOBAL ascent_traj_disp IS main_ascent_gui:addvlayout().
-	SET ascent_traj_disp:STYLE:WIDTH TO main_ascent_gui_width - 22.
+	SET ascent_traj_disp:STYLE:WIDTH TO main_ascent_gui_width - 16.
 	SET ascent_traj_disp:STYLE:HEIGHT TO 380.
 	SET ascent_traj_disp:STYLE:ALIGN TO "center".
 	
@@ -119,6 +119,18 @@ FUNCTION make_main_ascent_gui {
 	SET ascent_traj_disp_pred_bug_:STYLE:margin:v to shut_bug_pos[1] - 3.
 	SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_bug_pos[0].
 	
+	main_ascent_gui:addspacing(7).
+	
+	GLOBAL ascent_msg_scroll_box IS main_ascent_gui:addvlayout().
+	SET ascent_msg_scroll_box:STYLE:WIDTH TO main_ascent_gui_width - 16.
+	SET ascent_msg_scroll_box:STYLE:HEIGHT TO 80.
+	SET ascent_msg_scroll_box:STYLE:ALIGN TO "center".
+	
+	global msgscroll is ascent_msg_scroll_box:addscrollbox().
+	set msgscroll:valways to true.
+	set msgscroll:style:margin:h to 0.
+	set msgscroll:style:margin:v to 0.
+	
 	main_ascent_gui:SHOW().
 	
 }
@@ -136,6 +148,20 @@ FUNCTION close_all_GUIs{
 	CLEARGUIS().
 }
 
+function add_scroll_msg {
+	parameter msg.
+	parameter clear_all is false.
+	
+	if (clear_all) {
+		msgscroll:widgets[0]:dispose().
+	}
+	
+	local newlab is msgscroll:addlabel(msg).
+	set newlab:style:margin:v to -4.
+	
+	set msgscroll:position to v(0,1000,0).
+
+}
 
 FUNCTION clear_ascent_traj_data {
 	ascent_traj_disp_overlaiddata:clear().
@@ -327,7 +353,7 @@ function update_ascent_traj_disp {
 	} else {
 		set rolstr to rolstr + "L".
 	}
-	set rolstr to rolstr + round(control["roll_angle"] - abs(gui_data["roll"]),0).
+	set rolstr to rolstr + round(abs(gui_data["roll"]),0).
 	set ascent_trajleftdata3:text to rolstr. 
 	
 	local pchstr is "P   ".

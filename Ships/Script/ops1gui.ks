@@ -36,6 +36,10 @@ until false {
 	
 	set twr to twr + 0.05*ship:control:pilotpitch.
 	
+	if (ship:control:pilotroll <>0 ) {
+		add_scroll_msg("new message added").
+	}
+	
 	
 	print "vi " + vi + " " at (0,2).
 	
@@ -50,6 +54,26 @@ until false {
 					"alt", alt_,
 					"twr", twr
 	).
+	
+	LOCAL gui_data IS lexicon(
+					"ops_mode", 1,
+					"hdot", 100,
+					"roll", 1,
+					"pitch", 2,
+					"yaw", 3,
+					"vi", vi,
+					"ve", vel_,
+					"alt", alt_,
+					"pred_vi", vi + 100,
+					"pred_ve", vel_ + 100,
+					"pred_alt", alt_ + 1,
+					"twr", 1.5,
+					"ssme_thr", 100,
+					"et_prop", 100,
+					"tgo", 265,
+					"vgo", 5432,
+					"converged", true
+		).
 
 	update_ascent_traj_disp(gui_data).
 
