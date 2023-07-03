@@ -226,8 +226,10 @@ declare function sectotime {
 }
 
 //converts a time value into a hours,minutes,seconds string with colon separators
+//full format prints zeros in every place
 declare function sectotime_simple {
 	parameter t.
+	parameter full_format is false.
 	
 	local t_local is t.
 	
@@ -266,7 +268,7 @@ declare function sectotime_simple {
 	local min_str is "".
 	local sec_str is "".
 	
-	if (days>0) {
+	if (full_format OR days>0) {
 		set day_str to days + ":".
 		
 		if (days < 10) {
@@ -274,7 +276,7 @@ declare function sectotime_simple {
 		}
 	}
 	
-	if (hours>0) {
+	if (full_format OR hours>0) {
 		set hour_str to hours + ":".
 		
 		if (hours < 10) {
@@ -282,7 +284,7 @@ declare function sectotime_simple {
 		}
 	}
 	
-	if (mins>0) {
+	if (full_format OR mins>0) {
 		set min_str to mins + ":".
 		
 		if (mins < 10) {
