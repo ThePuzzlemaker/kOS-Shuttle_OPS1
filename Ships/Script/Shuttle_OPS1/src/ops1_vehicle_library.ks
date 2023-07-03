@@ -286,10 +286,11 @@ FUNCTION debug_vehicle {
 
 //default trajectory steepness factor 
 //bias given deltas of cutoff altitude and engine thrust with respect to reference
+//engine thrust with reference to 104% rpl
 FUNCTION vehicle_traj_steepness {
 
 	//reference thrust is rs-25D
-	LOCAL ssme_thr_fac IS 2319.9/vehicle["SSME"]["thrust"].
+	LOCAL ssme_thr_fac IS (1.045*get_rpl_thrust())/(vehicle["SSME"]["thrust"]*vehicle["SSME"]["maxThrottle"]).
 	
 	//reference alt is 112 km.
 	LOCAL cut_alt_fac IS target_orbit["Cutoff Altitude"]/112.
@@ -1041,7 +1042,7 @@ FUNCTION parse_ssme {
 	SET ssmelex["flow"] TO ssmelex["flow"]/ssme_count.
 
 	//calculate max throttle given nominal power level of 104.5%
-	SET ssmelex["maxThrottle"] TO 1.045*get_rpl_thrust()/ssmelex["thrust"].
+	SET ssmelex["maxThrottle"] TO min(1.045*get_rpl_thrust()/ssmelex["thrust"], 1).
 	
 	RETURN ssmelex.
 	
