@@ -376,6 +376,7 @@ FUNCTION dataViz {
 	SET pred_simstate["surfvel"] TO surfacevel(pred_simstate["velocity"],pred_simstate["position"]).
 	SET pred_simstate["latlong"] TO shift_pos(pred_simstate["position"],pred_simstate["simtime"]).
 
+	LOCAL pred_vi IS pred_simstate["velocity"]:MAG.
 	LOCAL pred_ve IS pred_simstate["surfvel"]:MAG.
 	LOCAL pred_alt IS pred_simstate["altitude"]/1000.
 	
@@ -395,13 +396,7 @@ FUNCTION dataViz {
 		if (vehiclestate["ops_mode"] > 1) {
 			set tgo to upfgInternal["Tgo"].
 			set vgo to upfgInternal["vgo"]:MAG.
-		}
-
-		//for traj prediction
-		
-		print "alt " + SHIP:ALTITUDE/1000 + "  " + pred_alt + "  " at (5,53).
-		print "ve " + SHIP:VELOCITY:SURFACE:MAG + "  " + pred_ve + "  " at (5,54).
-		
+		}	
 		
 		LOCAL gui_data IS lexicon(
 					"ops_mode", vehiclestate["ops_mode"],
@@ -412,6 +407,7 @@ FUNCTION dataViz {
 					"vi", SHIP:VELOCITY:ORBIT:MAG,
 					"ve", SHIP:VELOCITY:SURFACE:MAG,
 					"alt", SHIP:ALTITUDE/1000,
+					"pred_vi", pred_vi,
 					"pred_ve", pred_ve,
 					"pred_alt", pred_alt,
 					"twr", get_TWR(),
@@ -419,7 +415,7 @@ FUNCTION dataViz {
 					"et_prop", 100*get_et_prop_fraction(),
 					"tgo", tgo,
 					"vgo", vgo,
-					"converged", (usc["conv"]=1)
+					"converged", (usc["conv"]=1 AND NOT usc["terminal"])
 		).
 					
 		update_ascent_traj_disp(gui_data).

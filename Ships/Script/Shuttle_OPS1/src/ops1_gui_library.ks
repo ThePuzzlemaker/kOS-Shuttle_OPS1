@@ -271,6 +271,19 @@ function make_g_slider {
 	
 }
 
+function update_g_slider {
+	parameter g_val.
+	
+	SET g_slider:VALUE TO CLAMP(g_val,g_slider:MIN,g_slider:MAX).
+	
+	if (g_val > 3.1) {
+		set main_ascent_gui:skin:verticalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/vslider_thumb_yellow.png".
+	} else {
+		set main_ascent_gui:skin:verticalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/vslider_thumb.png".
+	}
+
+}
+
 
 function make_ascent_traj2_disp {
 	set ascent_traj_disp_counter to 2.
@@ -302,7 +315,7 @@ function make_rtls_traj2_disp {
 function update_ascent_traj_disp {
 	parameter gui_data.
 	
-	if (ascent_traj_disp_counter = 1 AND gui_data["ve"] >= 1200) {
+	if (ascent_traj_disp_counter = 1 AND gui_data["ve"] >= 1100) {
 		make_ascent_traj2_disp().
 	}
 	
@@ -347,16 +360,24 @@ function update_ascent_traj_disp {
 	set ascent_trajrightdata4:text to "<color=#" + upfg_text_color + ">TGO " + sectotime_simple(gui_data["tgo"]) + "</color>". 
 	set ascent_trajrightdata5:text to "<color=#" + upfg_text_color + ">VGO  " + round(gui_data["vgo"], 0) + "</color>". 
 	
+	update_g_slider(gui_data["twr"]).
 	
-	SET g_slider:VALUE TO CLAMP(gui_data["twr"],g_slider:MIN,g_slider:MAX).
 	SET cutv_slider:VALUE TO CLAMP(gui_data["vi"]/1000,cutv_slider:MIN,cutv_slider:MAX).
 	
-	local shut_bug_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["ve"]),ascent_traj_disp_y_convert(gui_data["alt"]), 0), 5).
+	local xval is gui_data["ve"].
+	local xpredval is gui_data["pred_ve"].
+	
+	if (ascent_traj_disp_counter = 2) {
+		set xval to gui_data["vi"].
+		set xpredval to gui_data["pred_vi"].
+	}
+	
+	local shut_bug_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(xval),ascent_traj_disp_y_convert(gui_data["alt"]), 0), 5).
 	
 	SET ascent_traj_disp_orbiter:STYLE:margin:v to shut_bug_pos[1].
 	SET ascent_traj_disp_orbiter:STYLE:margin:h to shut_bug_pos[0].
 	
-	local shut_pred_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["pred_ve"]),ascent_traj_disp_y_convert(gui_data["pred_alt"]), 0), 5).
+	local shut_pred_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(xpredval),ascent_traj_disp_y_convert(gui_data["pred_alt"]), 0), 5).
 	SET ascent_traj_disp_pred_bug_:STYLE:margin:v to shut_pred_pos[1] - 3.
 	SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_pred_pos[0].
 
