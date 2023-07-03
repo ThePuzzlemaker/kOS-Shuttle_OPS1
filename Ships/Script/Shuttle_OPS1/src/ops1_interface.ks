@@ -454,9 +454,9 @@ FUNCTION dataViz {
 
 function print_ascent_report {
 		
-	local orbit_str is "APOAPSIS: " + ROUND(APOAPSIS/1000,1) + " km | PERIAPSIS: " + ROUND(PERIAPSIS/1000,1) + " km".
+	local orbit_str is "AP: " + ROUND(APOAPSIS/1000,1) + " km | PE: " + ROUND(PERIAPSIS/1000,1) + " km".
 	
-	set orbit_str to orbit_str + " | INCLINATION:  " + ROUND(ORBIT:INCLINATION,3) + " ° | TRUE ANOM.: " + ROUND(ORBIT:TRUEANOMALY,2) + " °".
+	set orbit_str to orbit_str + " | INCL:  " + ROUND(ORBIT:INCLINATION,3) + " ° | TRUE AN.: " + ROUND(ORBIT:TRUEANOMALY,2) + " °".
 
 	addGUIMessage(orbit_str).
 	
@@ -464,7 +464,7 @@ function print_ascent_report {
 	set orbit_err_str to orbit_err_str + " | Pe err: " + ROUND(abs((1 - PERIAPSIS/(1 + target_orbit["Periapsis"]*1000))*100),2) + "%".
 	
 	set orbit_err_str to orbit_err_str + " | Incl err: " + ROUND(abs((1 - ORBIT:INCLINATION/(0.001 + target_orbit["Inclination"]))*100),3) + "%".
-	set orbit_err_str to orbit_err_str + " | True Anomaly err: " + ROUND(abs(ORBIT:TRUEANOMALY - target_orbit["eta"] ),2) + "° ".
+	set orbit_err_str to orbit_err_str + " | True An err: " + ROUND(abs(ORBIT:TRUEANOMALY - target_orbit["eta"] ),2) + "° ".
 
 	addGUIMessage(orbit_err_str).
 
