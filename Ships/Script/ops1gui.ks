@@ -26,6 +26,8 @@ make_ascent_traj1_disp(7654).
 
 local phase is 1.
 
+local tign is TIME:SECONDS + 10.
+
 until false {
 
 	if (ship:control:pilotyaw > 0) {
@@ -46,16 +48,10 @@ until false {
 	set alt_ to sample_data[sample_data_count][0].
 	set vel_ to sample_data[sample_data_count][1].
 
-	
 
-	LOCAL gui_data IS lexicon(
-					"ve", vel_,
-					"vi", vi,
-					"alt", alt_,
-					"twr", twr
-	).
 	
 	LOCAL gui_data IS lexicon(
+					"met", TIME:SECONDS - tign,
 					"ops_mode", 1,
 					"hdot", 100,
 					"roll", 1,

@@ -211,7 +211,7 @@ FUNCTION upfg_wrapper {
 				LOCAL pitchover_bias IS 0.5 * RTLS_pitchover_t(RTLSAbort["C1"], RTLSAbort["pitcharound"]["target"]).
 				
 				IF (upfgOutput["Tc"] <= (1 + pitchover_bias) AND RTLSAbort["flyback_conv"] = 1) {
-					addMessage("POWERED PITCH-AROUND TRIGGERED").
+					addGUIMessage("POWERED PITCH-AROUND TRIGGERED").
 					SET STEERINGMANAGER:MAXSTOPPINGTIME TO 1.2.
 					SET RTLSAbort["pitcharound"]["triggered"] TO TRUE.
 					SET RTLSAbort["pitcharound"]["complete"] TO FALSE.
@@ -277,7 +277,7 @@ FUNCTION resetUPFG {
 	PARAMETER upfgOutput.
 	
 
-	addMessage("RESETTING UPFG").
+	addGUIMessage("RESETTING UPFG").
 	LOCAL lastvec IS usc["lastvec"].
 	LOCAL x IS setupUPFG(target_orbit).
 	SET upfgOutput[0] TO x[0].

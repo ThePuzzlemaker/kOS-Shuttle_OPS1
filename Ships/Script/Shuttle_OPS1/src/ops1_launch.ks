@@ -66,6 +66,10 @@ declare function countdown{
 	add_action_event(1, activate_fuel_cells@ ).
 	add_action_event(350, roll_heads_up@ ).
 	
+	SET vehicle["ign_t"] TO TIME:SECONDS + 10.
+	
+	addGUIMessage(" T MINUS 10").
+	
 	
 	local line is 30.
 	print " COUNTDOWN:" AT (0,line).
@@ -74,22 +78,21 @@ declare function countdown{
 	
 	local TT IS TIME:SECONDS + 10 - vehicle["preburn"].
 	WHEN  TIME:SECONDS>=TT  THEN {
-			set line TO line + 2.
-			print " IGNITION SEQUENCE START." at (0,line).
+			addGUIMessage("GO FOR MAIN ENGINES START").
 			stage.	
 		}
-	from { LOCAL i IS 10.} until i = 0 step{ SET i TO i-1.} do{
 		
-		set line TO line + 2.
-		print " T MINUS "+ i at (0,line).
-		wait 1.
-	}	
+	WAIT 10.	
 	
 	SET surfacestate["MET"] TO TIME:SECONDS. 
 	SET vehicle["ign_t"] TO TIME:SECONDS. 
 	LOCK STEERING TO control["steerdir"].
+	addGUIMessage("BOOSTER IGNITION").
 	stage.	
-	wait until ship:unpacked and ship:loaded.
+	wait 0.
+	when (SHIP:VERTICALSPEED > 1) THEN {
+		addGUIMessage("LIFT-OFF CONFIRMED").
+	}
 	
 }
 
@@ -98,7 +101,6 @@ declare function countdown{
 declare function open_loop_ascent{
 	
 	drawUI().
-	addMessage("LIFT-OFF!").
 	
 	//reset throttle to maximum
 	SET vehicle["stages"][1]["Throttle"] TO  vehicle["maxThrottle"].
@@ -113,15 +115,16 @@ declare function open_loop_ascent{
 	SET control["refvec"] TO HEADING(control["launch_az"] + 180, 0):VECTOR.																			   
 	
 	SET vehiclestate["ops_mode"] TO 1.
+	
 	getState().
 	
 	WHEN SHIP:VERTICALSPEED >= 36 THEN {
-		addMessage("ROLL PROGRAM").	
+		addGUIMessage("ROLL PROGRAM").	
 		SET steer_flag TO true.
 		
 		WHEN SHIP:VERTICALSPEED >= 100 AND ABS(get_roll_lvlh() - control["roll_angle"]) < 7 THEN {
 			SET STEERINGMANAGER:MAXSTOPPINGTIME TO 0.5.	//by now we are heads-down going uphill
-			addMessage("ROLL PROGRAM COMPLETE").
+			addGUIMessage("ROLL PROGRAM COMPLETE").
 		}
 		
 		WHEN vehiclestate["staging_in_progress"] THEN {
@@ -170,12 +173,12 @@ declare function closed_loop_ascent{
 	SET vehiclestate["ops_mode"] TO 2.
 	drawUI().
 	
-	addMessage("RUNNING UPFG ALGORITHM").
+	addGUIMessage("RUNNING UPFG ALGORITHM").
 
 	UNTIL FALSE{
 		IF usc["itercount"]=0 { //detects first pass or convergence lost
 			WHEN usc["conv"]=1 THEN {
-				addMessage("GUIDANCE CONVERGED IN " + usc["itercount"] + " ITERATIONS").
+				addGUIMessage("GUIDANCE CONVERGED IN " + usc["itercount"] + " ITERATIONS").
 			}
 		}				
 
@@ -191,7 +194,7 @@ declare function closed_loop_ascent{
 		//see if we're at the last stage and close to flameout 
 		//this also takes care of staging during ssme phase
 		IF ssme_staging_flameout() {
-			addMessage("LOW LEVEL").
+			addGUIMessage("LOW LEVEL").
 			BREAK.
 		}
 		
@@ -201,12 +204,12 @@ declare function closed_loop_ascent{
 			LOCAL tgtsurfvel IS RTLS_rvline(downrangedist(launchpad,SHIP:GEOPOSITION )*1000).
 		
 			IF ( RTLSAbort["flyback_flag"] AND upfgInternal["tgo"] < 60 AND ( (usc["conv"]=1 AND upfgInternal["tgo"] < upfgFinalizationTime) OR SHIP:VELOCITY:SURFACE:MAG >= 0.9*tgtsurfvel ) ) {
-				addMessage("POWERED PITCH-DOWN").
+				addGUIMessage("POWERED PITCH-DOWN").
 				BREAK.
 			}
 		} ELSE {
 			IF (usc["conv"]=1 AND (upfgInternal["tgo"] < upfgFinalizationTime AND SHIP:VELOCITY:ORBIT:MAG>= 0.9*target_orbit["velocity"])) OR (SHIP:VELOCITY:ORBIT:MAG>= 0.995*target_orbit["velocity"]) {
-				addMessage("TERMINAL GUIDANCE").
+				addGUIMessage("TERMINAL GUIDANCE").
 				BREAK.
 			}
 		}
@@ -273,7 +276,7 @@ declare function closed_loop_ascent{
 		}
 	} ELSE {
 		
-		addMessage("WAITING FOR MECO").
+		addGUIMessage("WAITING FOR MECO").
 	
 		UNTIL FALSE {
 			getState().
@@ -313,7 +316,7 @@ declare function closed_loop_ascent{
 			}
 		}
 	}
-	addMessage("STAND-BY FOR ET SEP").
+	addGUIMessage("STAND-BY FOR ET SEP").
 	UNTIL FALSE{
 		getState().
 		
@@ -342,6 +345,8 @@ declare function closed_loop_ascent{
 	SAS ON.
 	
 	SET vehiclestate["staging_in_progress"] TO TRUE.	//so that vehicle perf calculations are skipped in getState
+	
+	print_ascent_report().
 	
 	drawUI().
 	UNTIL (AG9 or quit_program). {

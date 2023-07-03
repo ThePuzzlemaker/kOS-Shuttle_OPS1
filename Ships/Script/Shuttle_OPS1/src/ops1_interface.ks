@@ -1,12 +1,34 @@
+GLOBAL P_vizMsg IS LIST().
+
+
+FUNCTION addGUIMessage {
+	PARAMETER msg.
+	
+	LOCAL clear_ is false.
+	//if (vehiclestate["ops_mode"] < 1) {
+	//	set clear_ to TRUE.
+	//}
+	
+	local t_msg is TIME:SECONDS - vehicle["ign_t"].
+	
+	local t_str IS "".
+	
+	if (t_msg >= 0) {
+		SET t_str TO t_str + "+".
+	}
+	
+	ascent_add_scroll_msg(
+						t_str + sectotime(TIME:SECONDS - vehicle["ign_t"],"") + ": " + msg,
+						clear_
+	).
+
+}
 
 FUNCTION addMessage {
 	DECLARE PARAMETER msg.
 	LOCAL tt IS TIME:SECONDS.
 	LOCAL ttl IS 4.
 
-	IF NOT( DEFINED P_vizMsg ) {
-		GLOBAL P_vizMsg IS LIST().
-	}
 	local rem_list IS LIST().
 	FROM {LOCAL k IS 0.} UNTIL k = P_vizMsg:LENGTH  STEP { SET k TO k+1.} DO{
 		IF tt >= P_vizMsg[k]["ttl"] {
@@ -225,7 +247,7 @@ FUNCTION drawUI {
 
 //				outputs all flight information to the screen
 //				requires flight sequence given by P_seq defined as GLOBAL and of type LIST
-//				capable of displaying custom messages, set up by addMessage as a GLOBAL STRING with a FLOAT time to live
+//				capable of displaying custom messages, set up by addGUIMessage as a GLOBAL STRING with a FLOAT time to live
 FUNCTION dataViz {
 	if (vehiclestate["ops_mode"] =0) {return.}
 	
@@ -354,6 +376,9 @@ FUNCTION dataViz {
 	
 	log_telemetry().
 	
+	
+	//gui update
+	
 	local roll_prog is get_roll_prograde().
 	local pitch_prog is get_pitch_prograde().
 	
@@ -399,9 +424,10 @@ FUNCTION dataViz {
 		}	
 		
 		LOCAL gui_data IS lexicon(
+					"met", TIME:SECONDS - vehicle["ign_t"],
 					"ops_mode", vehiclestate["ops_mode"],
 					"hdot", SHIP:VERTICALSPEED,
-					"roll", get_roll_lvlh(),
+					"roll", control["roll_angle"] - get_roll_lvlh(),
 					"pitch", pitch_prog,
 					"yaw", get_yaw_prograde(),
 					"vi", SHIP:VELOCITY:ORBIT:MAG,
@@ -425,6 +451,24 @@ FUNCTION dataViz {
 
 }
 
+
+function print_ascent_report {
+		
+	local orbit_str is "APOAPSIS: " + ROUND(APOAPSIS/1000,1) + " km | PERIAPSIS: " + ROUND(PERIAPSIS/1000,1) + " km".
+	
+	set orbit_str to orbit_str + " | INCLINATION:  " + ROUND(ORBIT:INCLINATION,3) + " ° | TRUE ANOM.: " + ROUND(ORBIT:TRUEANOMALY,2) + " °".
+
+	addGUIMessage(orbit_str).
+	
+	local orbit_err_str is "Ap err: " + ROUND(abs((1 - APOAPSIS/(1 + target_orbit["Apoapsis"]*1000))*100),2) + "%".
+	set orbit_err_str to orbit_err_str + " | Pe err: " + ROUND(abs((1 - PERIAPSIS/(1 + target_orbit["Periapsis"]*1000))*100),2) + "%".
+	
+	set orbit_err_str to orbit_err_str + " | Incl err: " + ROUND(abs((1 - ORBIT:INCLINATION/(0.001 + target_orbit["Inclination"]))*100),3) + "%".
+	set orbit_err_str to orbit_err_str + " | True Anomaly err: " + ROUND(abs(ORBIT:TRUEANOMALY - target_orbit["eta"] ),2) + "° ".
+
+	addGUIMessage(orbit_err_str).
+
+}
 
 
 FUNCTION GRTLS_dataViz {

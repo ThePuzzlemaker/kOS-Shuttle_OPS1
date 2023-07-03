@@ -257,7 +257,7 @@ function initialise_shuttle {
 	
 	WHEN (SHIP:Q > 0.28) THEN {
 		IF NOT (abort_modes["triggered"]) {
-			addMessage("THROTTLING DOWN").
+			addGUIMessage("THROTTLING DOWN").
 			SET vehicle["stages"][1]["Throttle"] TO convert_ssme_throt_rpl(0.7).
 		}
 	}
@@ -352,7 +352,7 @@ FUNCTION roll_heads_up {
 	//setup the new roll and steering
 	if (vehicle["roll"] <> 0) {
 		SET STEERINGMANAGER:MAXSTOPPINGTIME TO 0.8.
-		addMessage("ROLL TO HEADS-UP ATTITUDE").
+		addGUIMessage("ROLL TO HEADS-UP ATTITUDE").
 		SET vehicle["roll"] TO 0.
 	}
 	
@@ -418,11 +418,11 @@ FUNCTION check_maxq {
 	IF (newq >=  surfacestate["q"] ) {
 		SET surfacestate["q"] TO newq.
 	} ELSE {
-		addMessage("VEHICLE HAS REACHED MAX-Q").
+		addGUIMessage("VEHICLE HAS REACHED MAX-Q").
 		surfacestate:REMOVE("q").
 		WHEN (SHIP:Q < 0.95*newq) THEN {
 			IF (vehicle["stages"][1]["Throttle"] < 1) {
-				addMessage("GO AT THROTTLE-UP").
+				addGUIMessage("GO AT THROTTLE-UP").
 				SET vehicle["stages"][1]["Throttle"] TO 1.
 			}
 		}
@@ -781,7 +781,7 @@ FUNCTION increment_stage {
 	vehiclestate["avg_thr"]:reset().
 	
 	WHEN TIME:SECONDS > vehiclestate["staging_time"] + 0.5 THEN {
-		addMessage("STAGING SEQUENCE COMPLETE").
+		addGUIMessage("STAGING SEQUENCE COMPLETE").
 		SET vehiclestate["staging_in_progress"] TO FALSE.
 	}
 
@@ -794,7 +794,7 @@ FUNCTION srb_staging {
 	IF (vehicle["stages"][vehiclestate["cur_stg"]]["Tstage"] <= 4 ) {
 		SET vehiclestate["staging_in_progress"] TO TRUE.
 		//SET control["steerdir"] TO SHIP:FACING.
-		addMessage("STAND-BY FOR SRB SEP").
+		addGUIMessage("STAND-BY FOR SRB SEP").
 		
 		
 		//WHEN (get_TWR()<0.98) THEN {
@@ -967,7 +967,7 @@ FUNCTION stop_oms_dump {
 			FOR oms IN SHIP:PARTSDUBBED("ShuttleEngineOMS") {
 				oms:SHUTDOWN.
 			}
-			addMessage("OMS DUMP STOPPED").
+			addGUIMessage("OMS DUMP STOPPED").
 			SET abort_modes["oms_dump"] TO FALSE.
 		}
 	}
@@ -1121,7 +1121,7 @@ function get_ssme_throttle {
 	local stg IS get_stage().
 	local throtval is stg["Throttle"].
 	
-	local ssme_thr IS throtval* stg["engines"]["thrust"]/3000.
+	local ssme_thr IS throtval* stg["engines"]["thrust"]/(vehicle["SSME"]["active"] * 1000).
 	
 	return ssme_thr/get_rpl_thrust().
 }

@@ -79,9 +79,18 @@ FUNCTION make_main_ascent_gui {
 
 	GLOBAL ascent_traj_disp_titlebox IS ascent_traj_disp:ADDHLAYOUT().
 	SET ascent_traj_disp_titlebox:STYLe:WIDTH TO ascent_traj_disp:STYLE:WIDTH.
-	SET ascent_traj_disp_titlebox:STYLe:HEIGHT TO 20.
+	SET ascent_traj_disp_titlebox:STYLe:HEIGHT TO 1.
 	GLOBAL ascent_traj_disp_title IS ascent_traj_disp_titlebox:ADDLABEL("").
 	SET ascent_traj_disp_title:STYLE:ALIGN TO "center".
+	
+	GLOBAL ascent_traj_disp_clockbox IS ascent_traj_disp:ADDHLAYOUT().
+	SET ascent_traj_disp_clockbox:STYLe:WIDTH TO ascent_traj_disp:STYLE:WIDTH.
+	SET ascent_traj_disp_clockbox:STYLe:HEIGHT TO 1.
+	GLOBAL ascent_traj_disp_clock IS ascent_traj_disp_clockbox:ADDLABEL("MET 00:00:00").
+	SET ascent_traj_disp_clock:STYLE:ALIGN TO "right".
+	SET ascent_traj_disp_clock:STYLE:margin:h to 20.
+	
+	ascent_traj_disp:addspacing(18).
 	
 	GLOBAL ascent_traj_disp_overlaiddata IS ascent_traj_disp:ADDVLAYOUT().
 	SET ascent_traj_disp_overlaiddata:STYLE:ALIGN TO "Center".
@@ -148,16 +157,16 @@ FUNCTION close_all_GUIs{
 	CLEARGUIS().
 }
 
-function add_scroll_msg {
+function ascent_add_scroll_msg {
 	parameter msg.
 	parameter clear_all is false.
 	
-	if (clear_all) {
+	if (clear_all AND msgscroll:widgets:LENGTH > 0) {
 		msgscroll:widgets[0]:dispose().
 	}
 	
 	local newlab is msgscroll:addlabel(msg).
-	set newlab:style:margin:v to -4.
+	set newlab:style:margin:v to -2.
 	
 	set msgscroll:position to v(0,1000,0).
 
@@ -344,6 +353,8 @@ function update_ascent_traj_disp {
 	if (ascent_traj_disp_counter = 1 AND gui_data["ve"] >= 1100) {
 		make_ascent_traj2_disp().
 	}
+
+	SET ascent_traj_disp_clock:text TO "MET " + sectotime_simple(gui_data["met"], true).
 	
 	set ascent_trajleftdata1:text to "Ḣ   " + round(gui_data["hdot"], 0). 
 	

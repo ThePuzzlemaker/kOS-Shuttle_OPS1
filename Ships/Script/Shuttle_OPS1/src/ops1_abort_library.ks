@@ -38,7 +38,7 @@ FUNCTION monitor_abort {
 	LOCAL current_t IS TIME:SECONDS - vehicle["ign_t"].
 	
 	IF abort_detect {
-		addMessage("ENGINE OUT DETECTED.").
+		addGUIMessage("ENGINE OUT DETECTED.").
 		SET abort_modes["triggered"] TO TRUE.
 		SET abort_modes["t_abort_true"] TO current_t.
 		SET abort_modes["t_abort"] TO MAX( current_t + 1, vehicle["handover"]["time"] + 5 ).
@@ -55,19 +55,19 @@ FUNCTION monitor_abort {
 			IF RTLS_boundary() {
 				SET abort_modes["RTLS"]["active"] TO FALSE.
 				SET abort_modes["TAL"]["active"] TO TRUE.
-				addMessage("NEGATIVE RETURN").
+				addGUIMessage("NEGATIVE RETURN").
 			}
 		} ELSE IF abort_modes["TAL"]["active"] {
 			IF TAL_boundary() {
 				SET abort_modes["TAL"]["active"] TO FALSE.
 				SET abort_modes["ATO"]["active"] TO TRUE.
-				addMessage("PRESS TO ATO.").
+				addGUIMessage("PRESS TO ATO.").
 			}
 		} ELSE IF abort_modes["ATO"]["active"] {
 			IF ATO_boundary() {
 				SET abort_modes["ATO"]["active"] TO FALSE.
 				SET abort_modes["MECO"]["active"] TO TRUE.
-				addMessage("PRESS TO MECO.").
+				addGUIMessage("PRESS TO MECO.").
 			}
 		}
 	
@@ -75,7 +75,7 @@ FUNCTION monitor_abort {
 		//check if conditions are right to setup the abort
 		IF (abort_modes["RTLS"]["active"] ) {
 			IF abort_detect {
-				addMessage("ABORT RTLS AT "+sectotime(abort_modes["t_abort"])).
+				addGUIMessage("ABORT RTLS AT "+sectotime(abort_modes["t_abort"])).
 			}
 		
 			//need to check the time becase we wait for second stage for RTLS
@@ -85,14 +85,14 @@ FUNCTION monitor_abort {
 			}
 		} ELSE IF (abort_modes["TAL"]["active"] ) {
 			IF abort_detect {
-				addMessage("ABORT TAL AT "+sectotime(abort_modes["t_abort"])).
+				addGUIMessage("ABORT TAL AT "+sectotime(abort_modes["t_abort"])).
 			}
 			//no need to check the time for TAL
 			SET abort_modes["TAL"]["active"] TO FALSE.
 			setup_TAL().
 		}  ELSE IF (abort_modes["ATO"]["active"] ) {
 			IF abort_detect {
-				addMessage("ABORT ATO / AOA AT "+sectotime(abort_modes["t_abort"])).
+				addGUIMessage("ABORT ATO / AOA AT "+sectotime(abort_modes["t_abort"])).
 			}
 			//no need to check the time for ATO / AOA
 			SET abort_modes["ATO"]["active"] TO FALSE.
@@ -100,7 +100,7 @@ FUNCTION monitor_abort {
 		
 		}  ELSE IF (abort_modes["MECO"]["active"] ) {
 			IF abort_detect {
-				addMessage("PRESSING TO MECO").
+				addGUIMessage("PRESSING TO MECO").
 			}
 
 			SET abort_modes["MECO"]["active"] TO FALSE.
@@ -353,7 +353,7 @@ FUNCTION setup_RTLS {
 	LOCAL flyback_immediate IS RTLS_immediate_flyback().
 		
 	IF (flyback_immediate) {
-		addMessage("POWERED PITCH-AROUND TRIGGERED").
+		addGUIMessage("POWERED PITCH-AROUND TRIGGERED").
 		SET STEERINGMANAGER:MAXSTOPPINGTIME TO 1.
 	}
 	
@@ -838,11 +838,11 @@ FUNCTION get_TAL_site {
 			SET selectedSite TO select_rand(candidate_sites).
 		}
 		
-		addMessage("SELECTED TAL SITE IS " + selectedSite).
+		addGUIMessage("SELECTED TAL SITE IS " + selectedSite).
 		
 	
 	} ELSE {
-		addMessage("SELECTED TAL SITE IS " + TAL_site).
+		addGUIMessage("SELECTED TAL SITE IS " + TAL_site).
 		SET selectedSite TO TAL_site.
 	}
 	
