@@ -35,7 +35,9 @@ function launch{
 	prepare_telemetry().
 	
 	make_main_ascent_gui().
-	make_ascent_traj1_disp(target_orbit["velocity"]).
+	make_ascent_traj1_disp().
+	
+	ascent_gui_set_cutv_indicator(target_orbit["velocity"]).
 	
 	GLOBAL dataviz_executor IS loop_executor_factory(
 												0.3,

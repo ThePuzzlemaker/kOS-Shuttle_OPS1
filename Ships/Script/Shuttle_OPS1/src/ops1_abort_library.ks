@@ -1054,6 +1054,8 @@ FUNCTION setup_TAL {
 	
 	SET upfgInternal TO resetUPFG(upfgInternal).
 	
+	ascent_gui_set_cutv_indicator(target_orbit["velocity"]).
+	
 	start_oms_dump().
 	
 	//trigger the roll to heads-up if it hasn't already, important for reentry 
@@ -1189,6 +1191,8 @@ FUNCTION setup_ATO {
 	
 	SET upfgInternal TO resetUPFG(upfgInternal).
 	
+	ascent_gui_set_cutv_indicator(target_orbit["velocity"]).
+	
 	drawUI().
 }
 
@@ -1242,6 +1246,7 @@ FUNCTION setup_MECO_ENGOUT {
 	
 	SET upfgInternal TO resetUPFG(upfgInternal).
 	
+	ascent_gui_set_cutv_indicator(target_orbit["velocity"]).
 	
 	drawUI().
 

@@ -177,7 +177,6 @@ FUNCTION clear_ascent_traj_data {
 }
 
 function make_ascent_traj1_disp {
-	parameter tgt_orb_vel.
 
 	set ascent_traj_disp_counter to 1.
 	
@@ -201,7 +200,7 @@ function make_ascent_traj1_disp {
 	set main_ascent_gui:skin:horizontalsliderthumb:WIDTH to 16.
 	set main_ascent_gui:skin:horizontalsliderthumb:margin:v to -12.
 	
-	make_ascent_cutv_slider(ascent_traj_disp_upperdatabox, tgt_orb_vel).
+	make_ascent_cutv_slider(ascent_traj_disp_upperdatabox).
 	
 	ascent_traj_disp_upperdatabox:HIDE().
 	
@@ -256,7 +255,6 @@ function make_ascent_traj1_disp {
 
 function make_ascent_cutv_slider {
 	parameter container_box.
-	parameter cutv.
 	
 	GLOBAL cutv_sliderbox IS container_box:ADDHLAYOUT().
 	SET cutv_sliderbox:STYLe:HEIGHT TO 40.
@@ -274,7 +272,7 @@ function make_ascent_cutv_slider {
 	SET cutv_tgt_bug_:STYLe:WIDTH TO 25.
 	SET cutv_tgt_bug_:STYLe:HEIGHT TO 25.
 	
-	set cutv_tgt_bug_:style:margin:h to 4 + (cutv/1000 - 7)*320.
+	set cutv_tgt_bug_:style:margin:h to 4.
 	set cutv_tgt_bug_:style:margin:v to 5.
 	
 	
@@ -283,6 +281,13 @@ function make_ascent_cutv_slider {
 	SET cutv_slider:style:hstretch to false.
 	SET cutv_slider:STYLE:WIDTH TO 335.
 	SET cutv_slider:STYLE:HEIGHT TO 20.
+
+}
+
+function ascent_gui_set_cutv_indicator {
+	parameter cutv.
+
+	set cutv_tgt_bug_:style:margin:h to 4 + (cutv/1000 - 7)*320.
 
 }
 
