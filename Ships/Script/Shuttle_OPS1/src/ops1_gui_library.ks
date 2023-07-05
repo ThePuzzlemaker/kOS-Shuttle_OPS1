@@ -194,12 +194,6 @@ function make_ascent_traj1_disp {
 	set ascent_traj_disp_upperdatabox:style:margin:h to 0.
 	set ascent_traj_disp_upperdatabox:style:margin:v to 0.
 	
-	SET main_ascent_gui:skin:horizontalslider:bg TO "Shuttle_OPS1/src/gui_images/cutv_slider_bg.png".
-	set main_ascent_gui:skin:horizontalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/hslider_thumb.png".
-	set main_ascent_gui:skin:horizontalsliderthumb:HEIGHT to 11.
-	set main_ascent_gui:skin:horizontalsliderthumb:WIDTH to 16.
-	set main_ascent_gui:skin:horizontalsliderthumb:margin:v to -12.
-	
 	make_ascent_cutv_slider(ascent_traj_disp_upperdatabox).
 	
 	ascent_traj_disp_upperdatabox:HIDE().
@@ -275,6 +269,11 @@ function make_ascent_cutv_slider {
 	set cutv_tgt_bug_:style:margin:h to 4.
 	set cutv_tgt_bug_:style:margin:v to 5.
 	
+	SET main_ascent_gui:skin:horizontalslider:bg TO "Shuttle_OPS1/src/gui_images/cutv_slider_bg.png".
+	set main_ascent_gui:skin:horizontalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/hslider_thumb.png".
+	set main_ascent_gui:skin:horizontalsliderthumb:HEIGHT to 11.
+	set main_ascent_gui:skin:horizontalsliderthumb:WIDTH to 16.
+	set main_ascent_gui:skin:horizontalsliderthumb:margin:v to -12.
 	
 	GLOBAL cutv_slider is cutv_sliderbox:addhslider(7,7,8).
 	SET cutv_slider:style:vstretch to false.
@@ -288,6 +287,49 @@ function ascent_gui_set_cutv_indicator {
 	parameter cutv.
 
 	set cutv_tgt_bug_:style:margin:h to 4 + (cutv/1000 - 7)*320.
+
+}
+
+function make_rtls_cutv_slider {
+	parameter container_box.
+	
+	GLOBAL rtls_cutv_sliderbox IS container_box:ADDHLAYOUT().
+	SET rtls_cutv_sliderbox:STYLe:HEIGHT TO 40.
+	SET rtls_cutv_sliderbox:STYLe:width TO 500.
+	set rtls_cutv_sliderbox:style:margin:h to 30.
+	set rtls_cutv_sliderbox:style:margin:v to 10.
+	
+	GLOBAL cutv_tgt_bug_box IS rtls_cutv_sliderbox:ADDVLAYOUT().
+	SET cutv_tgt_bug_box:STYLE:ALIGN TO "Center".
+	SET cutv_tgt_bug_box:STYLe:WIDTH TO 1.
+	SET cutv_tgt_bug_box:STYLe:HEIGHT TO 1.
+	
+	GLOBAL rtls_cutv_tgt_bug_ IS cutv_tgt_bug_box:ADDLABEL().
+	SET rtls_cutv_tgt_bug_:IMAGE TO "Shuttle_OPS1/src/gui_images/cutoff_vel_bug.png".
+	SET rtls_cutv_tgt_bug_:STYLe:WIDTH TO 25.
+	SET rtls_cutv_tgt_bug_:STYLe:HEIGHT TO 25.
+	
+	set rtls_cutv_tgt_bug_:style:margin:h to 4.
+	set rtls_cutv_tgt_bug_:style:margin:v to 5.
+	
+	SET main_ascent_gui:skin:horizontalslider:bg TO "Shuttle_OPS1/src/gui_images/rtls_cutv_slider_bg.png".
+	set main_ascent_gui:skin:horizontalsliderthumb:BG to "Shuttle_OPS1/src/gui_images/hslider_thumb.png".
+	set main_ascent_gui:skin:horizontalsliderthumb:HEIGHT to 11.
+	set main_ascent_gui:skin:horizontalsliderthumb:WIDTH to 16.
+	set main_ascent_gui:skin:horizontalsliderthumb:margin:v to -12.
+	
+	GLOBAL rtls_cutv_slider is rtls_cutv_sliderbox:addhslider(1.5,2.5,1.5).
+	SET rtls_cutv_slider:style:vstretch to false.
+	SET rtls_cutv_slider:style:hstretch to false.
+	SET rtls_cutv_slider:STYLE:WIDTH TO 435.
+	SET rtls_cutv_slider:STYLE:HEIGHT TO 20.
+
+}
+
+function rtls_gui_set_cutv_indicator {
+	parameter cutv.
+
+	set rtls_cutv_tgt_bug_:style:margin:h to 4 + ( 1 - (cutv/1000 - 1.5))*420.
 
 }
 
@@ -336,12 +378,10 @@ function make_ascent_traj2_disp {
 	ascent_traj_disp_upperdatabox:SHOW().
 	
 	//ADD stuff to ascent_traj_disp_overlaiddata
-
 }
 
 //
 function make_rtls_traj2_disp {
-	clear_ascent_traj_data().
 	
 	set ascent_traj_disp_counter to 5.
 	
@@ -349,6 +389,51 @@ function make_rtls_traj2_disp {
 	set ascent_traj_disp_title:text to "<b><size=" + text_ht + "> RTLS  TRAJ 2</size></b>".
 	
 	set ascent_traj_disp_mainbox:style:BG to "Shuttle_OPS1/src/gui_images/rtls_traj2_bg.png".
+	
+	clear_ascent_traj_data().
+	
+	GLOBAL rtls_traj_disp_upperdatabox IS ascent_traj_disp_overlaiddata:ADDHLAYOUT().
+	
+	SET rtls_traj_disp_upperdatabox:STYLE:WIDTH TO 300.
+    SET rtls_traj_disp_upperdatabox:STYLE:HEIGHT TO 30.
+	set rtls_traj_disp_upperdatabox:style:margin:h to 0.
+	set rtls_traj_disp_upperdatabox:style:margin:v to 0.
+	
+	make_rtls_cutv_slider(rtls_traj_disp_upperdatabox).
+	
+	GLOBAL rtls_traj_disp_leftdatabox IS ascent_traj_disp_overlaiddata:ADDVLAYOUT().
+	SET rtls_traj_disp_leftdatabox:STYLE:ALIGN TO "left".
+	SET rtls_traj_disp_leftdatabox:STYLE:WIDTH TO 125.
+    SET rtls_traj_disp_leftdatabox:STYLE:HEIGHT TO 115.
+	set rtls_traj_disp_leftdatabox:style:margin:h to 80.
+	set rtls_traj_disp_leftdatabox:style:margin:v to 12.
+	
+	GLOBAL rtls_trajleftdata1 IS rtls_traj_disp_leftdatabox:ADDLABEL("Ḣ   xxxxxx").
+	set rtls_trajleftdata1:style:margin:v to -4.
+	GLOBAL rtls_trajleftdata2 IS rtls_traj_disp_leftdatabox:ADDLABEL("THR   xxxxxx").
+	set rtls_trajleftdata2:style:margin:v to -4.
+	GLOBAL rtls_trajleftdata3 IS rtls_traj_disp_leftdatabox:ADDLABEL("PROP xxxxxx").
+	set rtls_trajleftdata3:style:margin:v to -4.
+	
+	GLOBAL rtls_trajleftdata4 IS rtls_traj_disp_leftdatabox:ADDLABEL("").
+	set rtls_trajleftdata4:style:margin:v to -4.
+	
+	GLOBAL rtls_trajleftdata5 IS rtls_traj_disp_leftdatabox:ADDLABEL("TGO  xxxxxx").
+	set rtls_trajleftdata5:style:margin:v to -4.
+	GLOBAL rtls_trajleftdata6 IS rtls_traj_disp_leftdatabox:ADDLABEL("VGO  xxxxxx").
+	set rtls_trajleftdata6:style:margin:v to -4.
+	GLOBAL rtls_trajleftdata7 IS rtls_traj_disp_leftdatabox:ADDLABEL(" TC  xxxxxx").
+	set rtls_trajleftdata7:style:margin:v to -4.
+	
+	
+	GLOBAL rtls_traj_disp_rightdatabox IS ascent_traj_disp_overlaiddata:ADDHLAYOUT().
+	SET rtls_traj_disp_rightdatabox:STYLE:ALIGN TO "left".
+	SET rtls_traj_disp_rightdatabox:STYLE:WIDTH TO 125.
+    SET rtls_traj_disp_rightdatabox:STYLE:HEIGHT TO 115.
+	set rtls_traj_disp_rightdatabox:style:margin:h to 410.
+	set rtls_traj_disp_rightdatabox:style:margin:v to 45.
+	
+	make_g_slider(rtls_traj_disp_rightdatabox).
 	
 }
 
@@ -429,6 +514,28 @@ function update_ascent_traj_disp {
 function update_rtls_traj_disp {
 	parameter gui_data.
 
+	SET ascent_traj_disp_clock:text TO "MET " + sectotime_simple(gui_data["met"], true).
+	
+	set rtls_trajleftdata1:text to "Ḣ   " + round(gui_data["hdot"], 0). 
+	
+	set rtls_trajleftdata3:text to "PROP " + round(gui_data["et_prop"],0). 
+	set rtls_trajleftdata2:text to "THR  " + round(gui_data["ssme_thr"], 0). 
+
+	local upfg_text_color is guitextgreenhex.
+	if (NOT gui_data["converged"]) {
+		set upfg_text_color to guitextyellowhex.
+	}
+
+	set rtls_trajleftdata5:text to "<color=#" + upfg_text_color + ">TGO " + sectotime_simple(gui_data["tgo"]) + "</color>". 
+	set rtls_trajleftdata6:text to "<color=#" + upfg_text_color + ">VGO  " + round(gui_data["vgo"], 0) + "</color>". 
+	set rtls_trajleftdata7:text to "<color=#" + guitextgreenhex + "> TC  " + sectotime_simple(gui_data["rtls_tc"]) + "</color>". 
+	
+
+	update_g_slider(gui_data["twr"]).
+	
+	SET rtls_cutv_slider:VALUE TO CLAMP(-SIGN(gui_data["dwnrg_ve"]) * gui_data["ve"]/1000,rtls_cutv_slider:MIN,rtls_cutv_slider:MAX).
+
+	rtls_gui_set_cutv_indicator(gui_data["rtls_cutv"]).
 
 	local shut_bug_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["dwnrg_ve"]),ascent_traj_disp_y_convert(gui_data["alt"]), 0), 5).
 	

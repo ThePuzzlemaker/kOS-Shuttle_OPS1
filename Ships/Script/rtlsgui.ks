@@ -20,11 +20,10 @@ make_main_ascent_gui().
 
 local alt_ is 0.
 local vel_ is 0.
-local twr is 0.
-local vi is 7000.
+local rtls_cutv is 2000.
 
 local sample_data is sample_rtls_traj_data().
-local sample_data_count is 0.
+local sample_data_count is 700.
 
 make_ascent_traj1_disp().
 ascent_gui_set_cutv_indicator(7654).
@@ -46,18 +45,15 @@ until false {
 		set sample_data_count to max(0, sample_data_count - 2).
 	}
 	
-	set twr to twr + 0.05*ship:control:pilotpitch.
-	
-	if (ship:control:pilotroll <>0 ) {
-		add_scroll_msg("new message added").
-	}
-	
-	
-	print "vi " + vi + " " at (0,2).
+	set rtls_cutv to rtls_cutv + 10*ship:control:pilotpitch.
+
 	
 	set alt_ to sample_data[sample_data_count][0].
 	set ve to sample_data[sample_data_count][1].
 	set vi to sample_data[sample_data_count][2].
+	
+	print "ve " + ve + " " at (0,2).
+	print "rtls_cutv " + rtls_cutv + " " at (0,3).
 
 	LOCAL gui_data IS lexicon(
 						"met", TIME:SECONDS - tign,
@@ -77,7 +73,7 @@ until false {
 						"et_prop", 100,
 						"tgo", 265,
 						"vgo", 5432,
-						"converged", true
+						"converged", false
 			).
 
 	IF (DEFINED RTLSAbort) {
@@ -86,7 +82,8 @@ until false {
 	
 		gui_data:ADD("dwnrg_ve", vdwnrg).
 		gui_data:ADD("dwnrg_pred_ve", vdwnrg + sign(vdwnrg) * 100).
-		gui_data:ADD("rtls_cutv", 2000).
+		gui_data:ADD("rtls_cutv", rtls_cutv).
+		gui_data:ADD("rtls_tc", 110).
 	
 		update_rtls_traj_disp(gui_data).
 	} else {
