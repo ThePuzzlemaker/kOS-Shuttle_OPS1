@@ -343,14 +343,14 @@ function make_ascent_traj2_disp {
 function make_rtls_traj2_disp {
 	clear_ascent_traj_data().
 	
+	set ascent_traj_disp_counter to 5.
+	
 	local text_ht is ascent_traj_disp_titlebox:style:height*0.75.
 	set ascent_traj_disp_title:text to "<b><size=" + text_ht + "> RTLS  TRAJ 2</size></b>".
 	
-	set ascent_traj_disp_mainbox:style:BG to "Shuttle_OPS1/src/gui_images/ascent_traj2_bg.png".
+	set ascent_traj_disp_mainbox:style:BG to "Shuttle_OPS1/src/gui_images/rtls_traj2_bg.png".
 	
 }
-
-
 
 function update_ascent_traj_disp {
 	parameter gui_data.
@@ -425,6 +425,22 @@ function update_ascent_traj_disp {
 
 }
 
+
+function update_rtls_traj_disp {
+	parameter gui_data.
+
+
+	local shut_bug_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["dwnrg_ve"]),ascent_traj_disp_y_convert(gui_data["alt"]), 0), 5).
+	
+	SET ascent_traj_disp_orbiter:STYLE:margin:v to shut_bug_pos[1].
+	SET ascent_traj_disp_orbiter:STYLE:margin:h to shut_bug_pos[0].
+	
+	local shut_pred_pos is set_ascent_traj_disp_pos(v(ascent_traj_disp_x_convert(gui_data["dwnrg_pred_ve"]),ascent_traj_disp_y_convert(gui_data["pred_alt"]), 0), 5).
+	SET ascent_traj_disp_pred_bug_:STYLE:margin:v to shut_pred_pos[1] - 3.
+	SET ascent_traj_disp_pred_bug_:STYLE:margin:h to shut_pred_pos[0].
+
+}
+
 //rescale redo
 function set_ascent_traj_disp_pos {
 	parameter bug_pos.
@@ -459,6 +475,8 @@ function ascent_traj_disp_x_convert {
 		set out to (par/5000 * 0.8 + 0.1)*512.
 	} else if (ascent_traj_disp_counter = 2) {
 		set out to ((par - 5000)/21000 * 0.8 + 0.1)*512.
+	} else if (ascent_traj_disp_counter = 5) {
+		set out to ((par + 8000.0)/18000*0.8 + 0.1)*512.
 	}
 	
 	return out.
@@ -473,6 +491,8 @@ function ascent_traj_disp_y_convert {
 		set out to 512.0 - (par / 170000.0 * 0.6 + 0.2) * 512.
 	} else if (ascent_traj_disp_counter = 2) {
 		set out to 512.0 - ((par - 140000.0) / 385000.0 * 0.6 + 0.2) * 512.
+	} else if (ascent_traj_disp_counter = 5) {
+		set out to 512.0 - ((par - 150000)/450000 * 0.7 + 0.2) * 512.
 	}
 
 	return (425 - out)*300/275 + 50.
