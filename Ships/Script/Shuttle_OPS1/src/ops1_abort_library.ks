@@ -292,6 +292,9 @@ FUNCTION RTLS_cutoff_params {
 	SET vel TO vel + vEarth.
 	
 	if (flyback_flag) {
+		//for display, this value is unreliable before flyback
+		SET tgt_orb["rtls_cutv"] TO rv_vel.
+	
 		//set new normal to normal of the plane containing current pos and target vel
 		SET tgt_orb["normal"] TO VCRS( -vecYZ(SHIP:ORBIT:BODY:POSITION:NORMALIZED) , vel:NORMALIZED  ).
 	}
@@ -324,6 +327,9 @@ FUNCTION setup_RTLS {
 	IF (DEFINED RTLSAbort) {
 		RETURN.
 	}
+	
+	//do it immediately so it's ready when the gui first wants to update it 
+	make_rtls_traj2_disp().
 	
 	//need to do the vehicle performance recalculations first because we need to know the time to burnout
 	
@@ -374,6 +380,7 @@ FUNCTION setup_RTLS {
 								"flyback_flag",flyback_immediate
 	).
 	
+	
 	LOCAL normvec IS RTLS_normal().
 	
 	LOCAL abort_v IS abort_modes["abort_v"]*vecYZ(SHIP:VELOCITY:ORBIT:NORMALIZED).
@@ -408,6 +415,7 @@ FUNCTION setup_RTLS {
 							"velocity",2200,
 							"angle",172,
 							"range",500*1000,
+							"rtls_cutv",2200,
 							"Periapsis",0,
 							"Apoapsis",0,
 							"inclination",target_orbit["inclination"],

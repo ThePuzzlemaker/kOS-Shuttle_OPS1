@@ -298,7 +298,7 @@ FUNCTION dataViz {
 	IF (DEFINED RTLSAbort) {
 		PRINTPLACE(ROUND(target_orbit["range"]/1000,1)+ " km",12,50,orbloc).
 		PRINTPLACE(ROUND(target_orbit["velocity"],1)+ " m/s",12,50,orbloc+1).
-		PRINTPLACE(ROUND(RTLS_rvline(target_orbit["range"]),1)+ " m/s",12,50,orbloc+2).
+		PRINTPLACE(ROUND(target_orbit["rtls_cutv"],1)+ " m/s",12,50,orbloc+2).
 		PRINTPLACE(ROUND((target_orbit["radius"]:MAG - SHIP:BODY:RADIUS)/1000,2) + " km",12,50,orbloc + 3).
 		PRINTPLACE(ROUND(vehicle["mbod"]/1000,3)+ " t",12,50,orbloc+4).
 	} ELSE {
@@ -405,44 +405,50 @@ FUNCTION dataViz {
 	LOCAL pred_ve IS pred_simstate["surfvel"]:MAG.
 	LOCAL pred_alt IS pred_simstate["altitude"]/1000.
 	
+	local tgo is 0.
+	local vgo is 0.
+	
+	if (vehiclestate["ops_mode"] > 1) {
+		set tgo to upfgInternal["Tgo"].
+		set vgo to upfgInternal["vgo"]:MAG.
+	}	
+	
+	LOCAL gui_data IS lexicon(
+				"met", TIME:SECONDS - vehicle["ign_t"],
+				"ops_mode", vehiclestate["ops_mode"],
+				"hdot", SHIP:VERTICALSPEED,
+				"roll", unfixangle(control["roll_angle"] - get_roll_lvlh()),
+				"pitch", pitch_prog,
+				"yaw", get_yaw_prograde(),
+				"vi", SHIP:VELOCITY:ORBIT:MAG,
+				"ve", SHIP:VELOCITY:SURFACE:MAG,
+				"alt", SHIP:ALTITUDE/1000,
+				"pred_vi", pred_vi,
+				"pred_ve", pred_ve,
+				"pred_alt", pred_alt,
+				"twr", get_TWR(),
+				"ssme_thr", 100*get_ssme_throttle(),
+				"et_prop", 100*get_et_prop_fraction(),
+				"tgo", tgo,
+				"vgo", vgo,
+				"converged", (usc["conv"]=1 AND NOT usc["terminal"])
+	).
 	
 	//do the rtls gui update 
 	IF (DEFINED RTLSAbort) {
 	
-		LOCAL pred_v_dwnrg IS current_horiz_dwnrg_speed(pred_simstate["latlong"], pred_simstate["surfvel"]).
+		gui_data:ADD("dwnrg_ve", current_horiz_dwnrg_speed(SHIP:GEOPOSITION, SHIP:VELOCITY:SURFACE)).
+		gui_data:ADD("dwnrg_pred_ve", current_horiz_dwnrg_speed(pred_simstate["latlong"], pred_simstate["surfvel"])).
+		gui_data:ADD("rtls_cutv", target_orbit["rtls_cutv"]).
+		gui_data:ADD("rtls_tc", RTLSAbort["Tc"]).
 		
-		//v_dwnrng", current_horiz_dwnrg_speed(SHIP:GEOPOSITION, SHIP:VELOCITY:SURFACE),
+		update_rtls_traj_disp(gui_data).
+		
+		//v_dwnrng", ,
 		//"pred_v_dwnrg", pred_v_dwnrg,
 	
 	} else {
-		local tgo is 0.
-		local vgo is 0.
 		
-		if (vehiclestate["ops_mode"] > 1) {
-			set tgo to upfgInternal["Tgo"].
-			set vgo to upfgInternal["vgo"]:MAG.
-		}	
-		
-		LOCAL gui_data IS lexicon(
-					"met", TIME:SECONDS - vehicle["ign_t"],
-					"ops_mode", vehiclestate["ops_mode"],
-					"hdot", SHIP:VERTICALSPEED,
-					"roll", unfixangle(control["roll_angle"] - get_roll_lvlh()),
-					"pitch", pitch_prog,
-					"yaw", get_yaw_prograde(),
-					"vi", SHIP:VELOCITY:ORBIT:MAG,
-					"ve", SHIP:VELOCITY:SURFACE:MAG,
-					"alt", SHIP:ALTITUDE/1000,
-					"pred_vi", pred_vi,
-					"pred_ve", pred_ve,
-					"pred_alt", pred_alt,
-					"twr", get_TWR(),
-					"ssme_thr", 100*get_ssme_throttle(),
-					"et_prop", 100*get_et_prop_fraction(),
-					"tgo", tgo,
-					"vgo", vgo,
-					"converged", (usc["conv"]=1 AND NOT usc["terminal"])
-		).
 					
 		update_ascent_traj_disp(gui_data).
 	
