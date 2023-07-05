@@ -427,7 +427,7 @@ FUNCTION dataViz {
 					"met", TIME:SECONDS - vehicle["ign_t"],
 					"ops_mode", vehiclestate["ops_mode"],
 					"hdot", SHIP:VERTICALSPEED,
-					"roll", control["roll_angle"] - get_roll_lvlh(),
+					"roll", unfixangle(control["roll_angle"] - get_roll_lvlh()),
 					"pitch", pitch_prog,
 					"yaw", get_yaw_prograde(),
 					"vi", SHIP:VELOCITY:ORBIT:MAG,
