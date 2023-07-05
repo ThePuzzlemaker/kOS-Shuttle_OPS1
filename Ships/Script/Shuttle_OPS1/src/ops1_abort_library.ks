@@ -308,7 +308,7 @@ FUNCTION RTLS_cutoff_params {
 
 FUNCTION RTLS_burnout_mass {
 
-	SET vehicle["mbod"] TO vehicle["stages"][vehicle["stages"]:LENGTH - 1]["m_final"] + 10000.
+	SET vehicle["mbod"] TO vehicle["stages"][vehicle["stages"]:LENGTH - 1]["m_final"] + 6000.
 }
 
 
@@ -425,7 +425,7 @@ FUNCTION setup_RTLS {
 	).
 	
 	
-	SET upfgConvergenceTgo TO 1.8.
+	SET upfgConvergenceTgo TO 2.
 	SET upfgFinalizationTime TO 15.
 	SET upfgInternal["flyback_flag"] TO flyback_immediate.
 
