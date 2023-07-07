@@ -385,7 +385,7 @@ FUNCTION upfg {
 	
 	//	3
 	IF SM[0]=1 {
-		SET aT[0] TO fT[0]*Kk / m.
+		SET aT[0] TO fT[0] / m.
 	} ELSE IF SM[0]=2 {
 		SET aT[0] TO aL[0].
 	}
