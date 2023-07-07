@@ -384,8 +384,6 @@ FUNCTION throttleControl {
 		SET usc["lastthrot"] TO throtval.
 	}
 	
-	print "max " + vehicle["maxThrottle"] + " cur " + throtval + "   " at (5,52).
-	
 	set throtval to min(vehicle["maxThrottle"],throtval).
 	set stg["Throttle"] to throtval.
 
