@@ -387,7 +387,7 @@ FUNCTION upfg_regular {
 		SET Lsum TO Lsum + Li[i].
 		
 		IF Lsum>vgo:MAG {
-			RETURN upfg(
+			RETURN upfg_regular(
 				t,
 				vehicle:SUBLIST(0,vehicle:LENGTH-1),
 				tgt_orb,
@@ -563,10 +563,10 @@ FUNCTION upfg_regular {
 		"t_lambda",(t + K_),
 		"steering",iF_,
 		"throtset",Kk,
-		"flyback_flag",flyback_flag,
-		"dmbo",dmbo,
-		"mbod",mbod,
-		"Tc",Tc
+		"flyback_flag",false,
+		"dmbo",0,
+		"mbod",0,
+		"Tc",0
 	).
 	
 	
@@ -816,6 +816,7 @@ FUNCTION upfg_rtls {
 		"cser", cser,
 		"rbias", rbias,
 		"rd", rd,
+		"rp", rp,
 		"rgrav", rgrav,
 		"time", t,
 		"tgo", tgo,
