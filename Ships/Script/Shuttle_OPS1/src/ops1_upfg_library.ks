@@ -621,76 +621,32 @@ FUNCTION upfg_rtls {
 	SET mbod TO  previous["mbod"].
 	SET flyback_flag TO previous["flyback_flag"].
 	IF (NOT flyback_flag ) {
-		SET Kk TO 0.99.
+		SET Kk TO 0.96.
 	}
 	
 
 	
 	//	1
-	LOCAL n IS vehicle:LENGTH.
-	LOCAL SM IS LIST().
-	LOCAL aL IS LIST().
-	LOCAL md IS LIST().
-	LOCAL ve IS LIST().
-	LOCAL fT IS LIST().
-	LOCAL aT IS LIST().
-	LOCAL tu IS LIST().
-	LOCAL tb IS LIST().
-	LOCAL kklist IS LIST().
-  
-	FROM { LOCAL i IS 0. } UNTIL i>=n STEP { SET i TO i+1. } DO {
-		SM:ADD(vehicle[i]["mode"]).
-		IF vehicle[i]:HASKEY("glim") {
-			aL:ADD(vehicle[i]["glim"]*g0).
-		} ELSE {
-			aL:ADD(0).
-		}
-		fT:ADD(vehicle[i]["engines"]["thrust"]).
-		md:ADD(vehicle[i]["engines"]["flow"]).
-		kklist:ADD(vehicle[i]["Throttle"]).
-		IF (i=0) {
-			SET kklist[i] TO Kk.	
-		}
-		SET fT[i] TO fT[i]*kklist[i].
-		SET md[i] TO md[i]*kklist[i].
-		ve:ADD(vehicle[i]["engines"]["isp"]*g0).
-		aT:ADD(fT[i] / vehicle[i]["m_initial"]).
-		tu:ADD(ve[i]/aT[i]).
-		tb:ADD(vehicle[i]["Tstage"]).
-	}
+	LOCAL n IS 1.
+	LOCAL aL IS 0.
+	LOCAL fT IS Kk*vehicle[0]["engines"]["thrust"].
+	LOCAL md IS Kk*vehicle[0]["engines"]["flow"].
+	LOCAL ve IS vehicle[0]["engines"]["isp"]*g0.
 	
+	LOCAL aT IS fT / m.
+	LOCAL tu IS ve/aT.
+	LOCAL tb IS vehicle[0]["Tstage"].
 	
 	//	3
-	IF SM[0]=1 {
-		SET aT[0] TO fT[0] / m.
-	} ELSE IF SM[0]=2 {
-		SET aT[0] TO aL[0].
-	}
-	SET tu[0] TO ve[0] / aT[0].
+	LOCAL Li IS vgo:MAG.
+	SET burnout_m TO m*CONSTANT:E^(-Li/ve).
+	SET mbo_T TO (m - mbod)/md.
 	
-	LOCAL Li IS LIST().
-		
-
-	Li:ADD(vgo:MAG).
-	SET burnout_m TO m*CONSTANT:E^(-Li[0]/ve[0]).
-	SET mbo_T TO (m - mbod)/md[0].
+	SET tb TO tu * (1-CONSTANT:E^(-Li/ve)).
 	
+	LOCAL tgoi IS LIST(tb).
 	
-	LOCAL tgoi IS LIST().
-	FROM { LOCAL i IS 0. } UNTIL i>=n STEP { SET i TO i+1. } DO {
-		IF SM[i]=1 {
-			SET tb[i] TO tu[i] * (1-CONSTANT:E^(-Li[i]/ve[i])).
-		} ELSE IF SM[i]=2 {
-			SET tb[i] TO Li[i] / aL[i].
-		}
-		IF i=0 {
-			tgoi:ADD(tb[i]).
-		} ELSE {
-			tgoi:ADD(tgoi[i-1] + tb[i]).
-		}
-	}
-	
-	SET tgo TO tgoi[n-1].
+	SET tgo TO tgoi[0].
 	
 	//	4
 	LOCAL L_ IS 0.
@@ -705,34 +661,17 @@ FUNCTION upfg_rtls {
 	LOCAL Pi IS LIST().
 	LOCAL tgoi1 IS 0.
 	
-	FROM { LOCAL i IS 0. } UNTIL i>=n STEP { SET i TO i+1. } DO {
-		IF i>0 {
-			SET tgoi1 TO tgoi[i-1].
-		}
-		IF SM[i]=1 {
-			Ji:ADD( tu[i]*Li[i] - ve[i]*tb[i] ).
-			Si:ADD( -Ji[i] + tb[i]*Li[i] ).
-			Qi:ADD( Si[i]*(tu[i]+tgoi1) - 0.5*ve[i]*tb[i]^2 ).
-			Pi:ADD( Qi[i]*(tu[i]+tgoi1) - 0.5*ve[i]*tb[i]^2 * (tb[i]/3+tgoi1) ).
-		} ELSE IF SM[i]=2 {
-			Ji:ADD( 0.5*Li[i]*tb[i] ).
-			Si:ADD( Ji[i] ).
-			Qi:ADD( Si[i]*(tb[i]/3+tgoi1) ).
-			Pi:ADD( (1/6)*Si[i]*(tgoi[i]^2 + 2*tgoi[i]*tgoi1 + 3*tgoi1^2) ).
-		}
-		
-		SET Ji[i] TO Ji[i] + Li[i]*tgoi1.
-		SET Si[i] TO Si[i] + L_*tb[i].
-		SET Qi[i] TO Qi[i] + J_*tb[i].
-		SET Pi[i] TO Pi[i] + H_*tb[i].
-		
-		SET L_ TO L_+Li[i].
-		SET J_ TO J_+Ji[i].
-		SET S_ TO S_+Si[i].
-		SET Q_ TO Q_+Qi[i].
-		SET P_ TO P_+Pi[i].
-		SET H_ TO J_*tgoi[i] - Q_.
-	}
+	LOCAL Ji IS tu*Li - ve*tb .
+	LOCAL Si IS -Ji + tb*Li .
+	LOCAL Qi IS Si*tu - 0.5*ve*tb^2.
+	LOCAL Pi IS Qi*tu - 0.5*ve*tb^2 * (tb/3).
+	
+	SET L_ TO L_+Li.
+	SET J_ TO J_+Ji.
+	SET S_ TO S_+Si.
+	SET Q_ TO Q_+Qi.
+	SET P_ TO P_+Pi.
+	SET H_ TO J_*tgo - Q_.
 	LOCAL K_ IS J_/L_.
 	
 	
