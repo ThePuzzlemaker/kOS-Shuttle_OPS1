@@ -29,7 +29,8 @@ GLOBAL upfgInternal IS LEXICON(
 		"flyback_flag",FALSE,
 		"mbod",0,
 		"dmbo",0,
-		"Tc",0
+		"Tc",30,
+		"C1",0
 	).
 GLOBAL usc IS LEXICON(
 		"iter",-2,
@@ -88,7 +89,8 @@ FUNCTION setupUPFG {
 		"flyback_flag",FALSE,
 		"mbod",0,
 		"dmbo",0,
-		"Tc",0
+		"Tc",30,
+		"C1",0
 	).
 	local LEX2 IS LEXICON(
 		"iter",-2,
@@ -99,6 +101,10 @@ FUNCTION setupUPFG {
 		"lastthrot",stg["Throttle"],
 		"terminal",FALSE
 	).
+	
+	IF (DEFINED RTLSAbort) {
+		SET LEX1["C1"] TO RTLSAbort["C1"]:NORMALIZED.
+	}
 	
 
 	RETURN LIST(LEX1,LEX2).
@@ -142,6 +148,7 @@ FUNCTION upfg_wrapper {
 	
 	IF (DEFINED RTLSAbort) {
 		SET upfgInternal["mbod"] TO vehicle["mbod"].
+		SET upfgInternal["C1"] TO RTLSAbort["C1"].
 		SET upfg_function_handle TO upfg_rtls@.
 	}
 	
@@ -616,11 +623,13 @@ FUNCTION upfg_rtls {
 	LOCAL burnout_m IS 0.
 	LOCAL mbo_T IS 0.
 	LOCAL RTLSthrotflag IS tgo>60.
+	LOCAL c1_ IS previous["C1"].
 	
 
 	SET mbod TO  previous["mbod"].
 	SET flyback_flag TO previous["flyback_flag"].
 	IF (NOT flyback_flag ) {
+		SET Tc to previous["Tc"].
 		SET Kk TO 0.96.
 	}
 	
@@ -633,11 +642,17 @@ FUNCTION upfg_rtls {
 	LOCAL md IS Kk*vehicle[0]["engines"]["flow"].
 	LOCAL ve IS vehicle[0]["engines"]["isp"]*g0.
 	
+	LOCAL aT_dissip IS fT / m.
+	LOCAL tu_dissip IS ve/aT_dissip.
+	LOCAL tb_dissip IS MAX(0.1, Tc).
+	
 	LOCAL aT IS fT / m.
 	LOCAL tu IS ve/aT.
 	LOCAL tb IS vehicle[0]["Tstage"].
 	
 	//	3
+	LOCAL Li_dissip IS ve*LN(tu_dissip/(tu_dissip-tb_dissip)).
+	
 	LOCAL Li IS vgo:MAG.
 	SET burnout_m TO m*CONSTANT:E^(-Li/ve).
 	SET mbo_T TO (m - mbod)/md.
@@ -649,33 +664,46 @@ FUNCTION upfg_rtls {
 	SET tgo TO tgoi[0].
 	
 	//	4
-	LOCAL L_ IS 0.
-	LOCAL J_ IS 0.
-	LOCAL S_ IS 0.
-	LOCAL Q_ IS 0.
-	LOCAL H_ IS 0.
-	LOCAL P_ IS 0.
-	LOCAL Ji IS LIST().
-	LOCAL Si IS LIST().
-	LOCAL Qi IS LIST().
-	LOCAL Pi IS LIST().
-	LOCAL tgoi1 IS 0.
+	LOCAL L_ IS Li.
+	LOCAL J_ IS tu*Li - ve*tb .
+	LOCAL S_ IS -J_ + tb*Li .
+	LOCAL Q_ IS S_*tu - 0.5*ve*tb^2.
+	LOCAL P_ IS Q_*tu - 0.5*ve*tb^2 * (tb/3).
 	
-	LOCAL Ji IS tu*Li - ve*tb .
-	LOCAL Si IS -Ji + tb*Li .
-	LOCAL Qi IS Si*tu - 0.5*ve*tb^2.
-	LOCAL Pi IS Qi*tu - 0.5*ve*tb^2 * (tb/3).
-	
-	SET L_ TO L_+Li.
-	SET J_ TO J_+Ji.
-	SET S_ TO S_+Si.
-	SET Q_ TO Q_+Qi.
-	SET P_ TO P_+Pi.
-	SET H_ TO J_*tgo - Q_.
+	LOCAL H_ IS J_*tgo - Q_.
 	LOCAL K_ IS J_/L_.
 	
+	IF (NOT flyback_flag ) {
+		LOCAL J_dissip IS tu_dissip*Li_dissip - ve*tb_dissip .
+		LOCAL S_dissip IS -J_dissip + tb_dissip*Li_dissip .
+		LOCAL Q_dissip IS S_dissip*tu_dissip - 0.5*ve*tb_dissip^2.
+		LOCAL P_dissip IS Q_dissip*tu_dissip - 0.5*ve*tb_dissip^2 * (tb_dissip/3).
+		
+		LOCAL rthrust_dissip IS S_dissip*c1_.
+		LOCAL vthrust_dissip IS Li_dissip*c1_.
+		
+		LOCAL rc1_dissip IS r_cur - 0.1*rthrust_dissip - (tb_dissip/30)*vthrust_dissip.
+		LOCAL vc1_dissip IS v_cur + 1.2*rthrust_dissip/tb_dissip - 0.1*vthrust_dissip.
+		LOCAL pack IS cse(rc1_dissip, vc1_dissip, tb_dissip, cser).
+		LOCAL rgrav_dissip IS pack[0] - rc1_dissip - vc1_dissip*tb_dissip.
+		LOCAL vgrav_dissip IS pack[1] - vc1_dissip.
+		
+		LOCAL v_dissip IS v_cur + vthrust_dissip + vgrav_dissip.
+		LOCAL r_dissip IS r_cur + v_cur*tb_dissip + rgrav_dissip + rthrust_dissip.
+		
+		arrow_body(vecyz(r_dissip), "r_dissip").
+		arrow_ship(vecyz(c1_), "r_dissip").
+		
+		print "rdissip " + (r_dissip:mag - bODY:RADIUS)/1000 at (10,55).
+		print "vdissip " + v_dissip:mag at (10,56).
+		
+		
+	}
 	
 	//	5
+	
+	
+	
 	IF vgo:MAG <>0 { SET lambda TO vgo:NORMALIZED.}
 	IF previous["tgo"]>0 {
 		SET rgrav TO (tgo/previous["tgo"])^2 * rgrav.
@@ -769,7 +797,8 @@ FUNCTION upfg_rtls {
 		"flyback_flag",flyback_flag,
 		"dmbo",dmbo,
 		"mbod",mbod,
-		"Tc",Tc
+		"Tc",Tc,
+		"C1",c1_
 	).
 	
 	

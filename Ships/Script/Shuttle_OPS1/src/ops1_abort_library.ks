@@ -363,7 +363,8 @@ FUNCTION setup_RTLS {
 		SET STEERINGMANAGER:MAXSTOPPINGTIME TO 1.
 	}
 	
-	GLOBAL RTLSAbort IS LEXICON (
+	//need a temporary lexicon because of concurrency problems
+	LOCAL abort_lex IS LEXICON (
 								"t_abort",t_abort,
 								"C1",v(0,0,0),
 								"Tc",0,
@@ -384,10 +385,10 @@ FUNCTION setup_RTLS {
 	LOCAL normvec IS RTLS_normal().
 	
 	LOCAL abort_v IS abort_modes["abort_v"]*vecYZ(SHIP:VELOCITY:ORBIT:NORMALIZED).
-	SET RTLSAbort["C1"] TO RTLS_C1(normvec).
+	SET abort_lex["C1"] TO RTLS_C1(normvec).
 	
-	SET RTLSAbort["pitcharound"]["refvec"] TO normvec.
-	SET RTLSAbort["pitcharound"]["target"] TO rodrigues(RTLSAbort["C1"],RTLSAbort["pitcharound"]["refvec"],2.5*VANG(RTLSAbort["C1"],vecYZ(-SHIP:ORBIT:BODY:POSITION:NORMALIZED))).
+	SET abort_lex["pitcharound"]["refvec"] TO normvec.
+	SET abort_lex["pitcharound"]["target"] TO rodrigues(abort_lex["C1"],abort_lex["pitcharound"]["refvec"],2.5*VANG(abort_lex["C1"],vecYZ(-SHIP:ORBIT:BODY:POSITION:NORMALIZED))).
 	
 	
 	//calculate the range shift to use for RVline calculations
@@ -401,8 +402,8 @@ FUNCTION setup_RTLS {
 	LOCAL delta_tgt_pos IS tgt_site_meco - tgt_site_now.
 	
 	//should be negative if we're moving east (the taget site will move towards us during flyback) and positive if west (tgtsite will be moving away)
-	//SET RTLSAbort["MECO_range_shift"] TO -VDOT(SHIP:VELOCITY:SURFACE:NORMALIZED,delta_tgt_pos:NORMALIZED)*range_dist.
-	SET RTLSAbort["MECO_range_shift"] TO -range_dist.
+	//SET abort_lex["MECO_range_shift"] TO -VDOT(SHIP:VELOCITY:SURFACE:NORMALIZED,delta_tgt_pos:NORMALIZED)*range_dist.
+	SET abort_lex["MECO_range_shift"] TO -range_dist.
 	
 	
 	
@@ -434,6 +435,8 @@ FUNCTION setup_RTLS {
 	
 	
 	start_oms_dump().
+	
+	GLOBAL RTLSAbort IS abort_lex.
 
 	drawUI().
 	
