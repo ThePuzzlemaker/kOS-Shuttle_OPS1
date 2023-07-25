@@ -361,7 +361,7 @@ FUNCTION dataViz {
 		}
 		
 		IF (DEFINED RTLSAbort) {
-			PRINTPLACE(sectotime(RTLSAbort["Tc"]),12,50,vehloc+5).
+			PRINTPLACE(sectotime(RTLSAbort["Tc"] - RTLSAbort["Tc_bias"]),12,50,vehloc+5).
 			//LOCAL rtlsdissip Is ( NOT ( RTLSAbort["pitcharound"]["triggered"] OR RTLSAbort["flyback_flag"] )).
 			//IF (rtlsdissip) {
 			//	PRINTPLACE(sectotime(RTLSAbort["Tc"]),12,50,vehloc+5).
@@ -440,7 +440,7 @@ FUNCTION dataViz {
 		gui_data:ADD("dwnrg_ve", current_horiz_dwnrg_speed(SHIP:GEOPOSITION, SHIP:VELOCITY:SURFACE)).
 		gui_data:ADD("dwnrg_pred_ve", current_horiz_dwnrg_speed(pred_simstate["latlong"], pred_simstate["surfvel"])).
 		gui_data:ADD("rtls_cutv", target_orbit["rtls_cutv"]).
-		gui_data:ADD("rtls_tc", RTLSAbort["Tc"]).
+		gui_data:ADD("rtls_tc", RTLSAbort["Tc"] - RTLSAbort["Tc_bias"]).
 		
 		update_rtls_traj_disp(gui_data).
 		

@@ -136,12 +136,6 @@ FUNCTION RTLS_first_stage_lofting_bias {
 //to be called before launch, will fin the closest landing site 
 //to the launchpad
 FUNCTION get_RTLS_site {
-	LOCAL reduced_sites_lex IS LEXICON(
-									"KSC",ldgsiteslex["KSC"],
-									"Edwards",ldgsiteslex["Edwards"]
-	
-	).
-	//LOCAL closest_out IS get_closest_site(reduced_sites_lex).
 	LOCAL closest_out IS get_closest_site(ldgsiteslex).
 	RETURN closest_out[1].
 }
@@ -230,9 +224,22 @@ FUNCTION RTLS_pitchover_t {
 	PARAMETER c1_vec.
 	PARAMETER pitcharound_vec.
 	
-	LOCAL pitchover_rate IS 15.		//degrees per second 
+	LOCAL pitchover_rate IS 20.		//degrees per second 
 	
 	RETURN VANG(pitcharound_vec, c1_vec)/pitchover_rate.
+}
+
+//returns true if the current position is behind the target, 
+//projected onto the normal plane of dissipation
+FUNCTION RTLS_flyback_inhibit {
+	LOCAL cur_pos IS -vecYZ(SHIP:ORBIT:BODY:POSITION:NORMALIZED).
+	
+	LOCAL tgt IS RTLSAbort["flyback_tgt_pos"].
+	
+	LOCAL rel_angle IS signed_angle(tgt, cur_pos, target_orbit["normal"], 0).
+	
+	RETURN (rel_angle > 0).
+
 }
 
 //RV-line , takes range to target site in metres
@@ -246,41 +253,24 @@ FUNCTION RTLS_rvline {
 	
 }
 
-
-//normal vector to the plane containing current pos vector and target vector
-FUNCTION RTLS_normal {
-
-	LOCAL cur_pos IS -vecYZ(SHIP:ORBIT:BODY:POSITION:NORMALIZED).
-		
-	//find the current position vector of the target site
-	LOCAL tgtsitevec IS RTLS_tgt_site_vector().
-	
-	//construct the plane of rtls
-	LOCAL dr IS cur_pos - tgtsitevec.
-	LOCAL tgtnorm IS -VCRS(tgtsitevec,dr):NORMALIZED.
-	
-	RETURN tgtnorm.
-
-}
-
 FUNCTION RTLS_cutoff_params {
 	PARAMETER tgt_orb.
+	PARAMETER cur_r.
 	PARAMETER cutoff_r.
 	PARAMETER flyback_flag.
 	
-	//first calculate the cutoff reference frame pointing to the target site right now
-	LOCAL iy IS RTLS_normal().
+	//fixed target site
+	LOCAL tgtsitevec IS RTLSAbort["flyback_tgt_pos"].
+	
+	
+	//first calculate the cutoff reference frame pointing to the target site
+	LOCAL iy IS -VCRS(tgtsitevec, (cur_r - tgtsitevec)):NORMALIZED.
 	LOCAL ix IS cutoff_r:NORMALIZED.
 	LOCAL iz IS VCRs(ix,iy).
 	
 	SET tgt_orb["radius"] TO ix* tgt_orb["radius"]:MAG.
 	
 	//calculate range to go and cutoff velocity using the RV line 
-	//need to use a fixed position to make the calculation stable
-	
-	//this is the launch site position when the abort was triggered
-	LOCAL tgtsitevec IS RTLS_shifted_tgt_site_vector(RTLSAbort["t_abort"] - TIME:SECONDS).
-	
 	LOCAL newrange IS VANG(tgtsitevec,ix).
 	SET newrange TO newrange*(constant:pi*SHIP:BODY:RADIUS)/180 + RTLSAbort["MECO_range_shift"].
 	SET tgt_orb["range"] TO newrange.
@@ -296,7 +286,7 @@ FUNCTION RTLS_cutoff_params {
 		SET tgt_orb["rtls_cutv"] TO rv_vel.
 	
 		//set new normal to normal of the plane containing current pos and target vel
-		SET tgt_orb["normal"] TO VCRS( -vecYZ(SHIP:ORBIT:BODY:POSITION:NORMALIZED) , vel:NORMALIZED  ).
+		//SET tgt_orb["normal"] TO VCRS( -vecYZ(SHIP:ORBIT:BODY:POSITION:NORMALIZED) , vel:NORMALIZED  ).
 	}
 
 	SET tgt_orb["velocity"] TO vel:MAG.	
@@ -307,8 +297,13 @@ FUNCTION RTLS_cutoff_params {
 
 
 FUNCTION RTLS_burnout_mass {
+	LOCAL stg IS get_stage().
+	SET vehicle["mbod"] TO stg["m_final"] + 6000.
+}
 
-	SET vehicle["mbod"] TO vehicle["stages"][vehicle["stages"]:LENGTH - 1]["m_final"] + 6000.
+FUNCTION RTLS_burnout_dt {
+	LOCAL stg IS get_stage().
+	RETURN (stg["m_initial"] - vehicle["mbod"])/stg["engines"]["flow"].
 }
 
 
@@ -363,11 +358,15 @@ FUNCTION setup_RTLS {
 		SET STEERINGMANAGER:MAXSTOPPINGTIME TO 1.
 	}
 	
+	LOCAL flyback_tgt IS  RTLS_shifted_tgt_site_vector(RTLS_burnout_dt()).
+	
 	//need a temporary lexicon because of concurrency problems
 	LOCAL abort_lex IS LEXICON (
 								"t_abort",t_abort,
 								"C1",v(0,0,0),
 								"Tc",0,
+								"Tc_bias",5,
+								"flyback_tgt_pos", flyback_tgt,
 								"MECO_range_shift",0,
 								"pitcharound",LEXICON(
 													"refvec",v(0,0,0),
@@ -382,29 +381,13 @@ FUNCTION setup_RTLS {
 	).
 	
 	
-	LOCAL normvec IS RTLS_normal().
+	LOCAL normvec IS target_orbit["normal"].
 	
 	LOCAL abort_v IS abort_modes["abort_v"]*vecYZ(SHIP:VELOCITY:ORBIT:NORMALIZED).
 	SET abort_lex["C1"] TO RTLS_C1(normvec).
 	
 	SET abort_lex["pitcharound"]["refvec"] TO normvec.
 	SET abort_lex["pitcharound"]["target"] TO rodrigues(abort_lex["C1"],abort_lex["pitcharound"]["refvec"],2.5*VANG(abort_lex["C1"],vecYZ(-SHIP:ORBIT:BODY:POSITION:NORMALIZED))).
-	
-	
-	//calculate the range shift to use for RVline calculations
-	//predict the time to desired cutoff mass, shift the target site forward to that point, measure distance and correct for inclination
-	LOCAL dmbo_t IS (vehicle["stages"][2]["m_initial"] - vehicle["mbod"]) * vehicle["stages"][2]["Tstage"]/vehicle["stages"][2]["m_burn"].
-	
-	LOCAL tgt_site_now IS RTLS_tgt_site_vector().
-	LOCAL tgt_site_meco IS RTLS_shifted_tgt_site_vector(dmbo_t).
-	LOCAL range_dist IS VANG(tgt_site_now,tgt_site_meco)*(constant:pi*SHIP:BODY:RADIUS)/180.
-	
-	LOCAL delta_tgt_pos IS tgt_site_meco - tgt_site_now.
-	
-	//should be negative if we're moving east (the taget site will move towards us during flyback) and positive if west (tgtsite will be moving away)
-	//SET abort_lex["MECO_range_shift"] TO -VDOT(SHIP:VELOCITY:SURFACE:NORMALIZED,delta_tgt_pos:NORMALIZED)*range_dist.
-	SET abort_lex["MECO_range_shift"] TO -range_dist.
-	
 	
 	
 	LOCAL curR IS orbitstate["radius"].
@@ -427,12 +410,11 @@ FUNCTION setup_RTLS {
 	
 	
 	SET upfgConvergenceTgo TO 2.
-	SET upfgFinalizationTime TO 15.
-	SET upfgInternal["flyback_flag"] TO flyback_immediate.
-
+	SET upfgFinalizationTime TO 10.
 
 	SET upfgInternal TO resetUPFG(upfgInternal).
 	
+	SET upfgInternal["flyback_flag"] TO flyback_immediate.
 	
 	start_oms_dump().
 	

@@ -338,6 +338,9 @@ declare function closed_loop_ascent{
 	IF (DEFINED RTLSAbort) {
 		LIST ENGINES IN Eng.
 		FOR E IN Eng {IF e:ISTYPE("engine") {E:SHUTDOWN.}}
+		
+		dataviz_executor["stop_execution"]().
+		
 		GRTLS().
 		RETURN.
 	}
@@ -361,4 +364,5 @@ declare function closed_loop_ascent{
 
 launch().
 
+dataviz_executor["stop_execution"]().
 close_all_GUIs().
